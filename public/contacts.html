@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Lemon Pages</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="directory-header">
+    <div class="directory-header__inner">
+      <div class="brand">
+        <span class="brand__mark">The Lemon <em>Pages</em></span>
+      </div>
+      <div class="header-actions">
+        <span id="welcomeMsg" class="toolbar__meta" style="color:var(--yellow)"></span>
+        <button type="button" id="logoutBtn" class="btn btn--ghost btn--small">Log Out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="directory-main">
+    <div id="banner" class="banner" role="status" hidden></div>
+
+    <section class="toolbar">
+      <form id="searchForm" class="search-box" role="search">
+        <span class="search-box__icon" aria-hidden="true">Find</span>
+        <label for="searchInput" class="visually-hidden">Search contacts by name</label>
+        <input type="search" id="searchInput" name="q" placeholder="Search by first or last name&hellip;" autocomplete="off" />
+      </form>
+      <span class="toolbar__meta" id="resultCount">0 listings</span>
+      <button type="button" id="addContactBtn" class="btn btn--primary">+ Add Contact</button>
+    </section>
+
+    <nav class="alpha-index" id="alphaIndex" aria-label="Jump to letter">
+      <!-- populated by contacts.js -->
+    </nav>
+
+    <div id="listingsContainer">
+      <div class="state-panel" id="loadingState">
+        <div class="state-panel__title">Loading the directory&hellip;</div>
+        <p>Please hold the line.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add / Edit Contact modal (shared "classified ad" card) -->
+  <div class="modal-overlay" id="contactModal" hidden>
+    <div class="ad-card" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
+      <div class="ad-card__header">
+        <span id="contactModalTitle">New Contact</span>
+        <button type="button" class="ad-card__close" id="contactModalClose" aria-label="Close">&times;</button>
+      </div>
+      <form id="contactForm" novalidate>
+        <div class="ad-card__body">
+          <input type="hidden" id="contactId" name="id" />
+
+          <div class="field" id="field-firstName">
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" name="firstName" required autocomplete="given-name" />
+            <span class="field__error"></span>
+          </div>
+
+          <div class="field" id="field-lastName">
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" name="lastName" required autocomplete="family-name" />
+            <span class="field__error"></span>
+          </div>
+
+          <div class="field" id="field-email">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required autocomplete="email" />
+            <span class="field__error"></span>
+          </div>
+
+          <div class="field" id="field-phone">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" required autocomplete="tel" placeholder="(555) 555-1234" />
+            <span class="field__error"></span>
+          </div>
+        </div>
+        <div class="ad-card__footer">
+          <button type="button" class="btn" id="contactCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="contactSaveBtn">Save Listing</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete confirmation dialog -->
+  <div class="modal-overlay" id="deleteModal" hidden>
+    <div class="ad-card confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+      <div class="ad-card__header">
+        <span id="deleteModalTitle">Remove Listing</span>
+        <button type="button" class="ad-card__close" id="deleteModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="confirm-card__body">
+        <p>Delete <strong id="deleteContactName">this contact</strong> from the directory? This cannot be undone.</p>
+      </div>
+      <div class="ad-card__footer">
+        <button type="button" class="btn" id="deleteCancelBtn">Cancel</button>
+        <button type="button" class="btn btn--danger" id="deleteConfirmBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" width="15" height="15">
+            <path d="M4 7h16" /><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+            <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+            <path d="M10 11v6" /><path d="M14 11v6" />
+          </svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/contacts.js"></script>
+</body>
+</html>
