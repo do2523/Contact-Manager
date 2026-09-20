@@ -2,7 +2,7 @@ USE contact_manager;
 
 DELIMITER //
 
---Creates procedure to insert 10 records of test contact data into contact
+-- Creates procedure to insert 10 records of test contact data into contact
 CREATE PROCEDURE fill_contacts()
 BEGIN
     DECLARE i INT DEFAULT 1;
@@ -26,7 +26,7 @@ BEGIN
     END WHILE;
 END//
 
---Creates procedure to insert 5 records of test user data into users
+-- Creates procedure to insert 5 records of test user data into users
 CREATE PROCEDURE fill_users()
 BEGIN
     DECLARE i INT DEFAULT 1;
@@ -43,6 +43,9 @@ END//
 
 DELIMITER ;
 
---Calls procedures to seed database
+-- Calls procedures to seed database
 CALL fill_users();
 CALL fill_contacts();
+
+SELECT * FROM users;
+SELECT * FROM contacts;
