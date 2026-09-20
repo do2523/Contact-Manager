@@ -2,6 +2,7 @@ USE contact_manager;
 
 DELIMITER //
 
+--Inserts 10 records of test contact data into contact
 CREATE PROCEDURE fill_contacts()
 BEGIN
     DECLARE i INT DEFAULT 0;
@@ -19,6 +20,7 @@ BEGIN
     END WHILE;
 END//
 
+--Inserts 5 records of test user data into users
 CREATE PROCEDURE fill_users()
 BEGIN
     DECLARE i INT DEFAULT 0;
