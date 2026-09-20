@@ -21,5 +21,5 @@ CREATE TABLE contacts (
     FOREIGN KEY (UserID) REFERENCES users(ID)
 ) ENGINE = InnoDB;
 
-CREATE INDEX Owner_ID ON CONTACTS (UserID);
-CREATE INDEX F_name on CONTACTS (FirstName);
+CREATE INDEX Owner_ID ON contacts (UserID);
+CREATE INDEX F_name on contacts (FirstName);
