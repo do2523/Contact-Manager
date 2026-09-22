@@ -42,14 +42,15 @@ BEGIN
     DELETE FROM contacts WHERE ContactID = Con_ID;
 END //
 
-DELIMITER ;
-/*
--- Searches a contact on the contact table
+
+-- Searches a contact by user ID and first name or last name
 CREATE PROCEDURE search_contact(
     IN U_ID INT,
     IN F_Name VARCHAR(50)
 )
 BEGIN
-    SELECT ContactID FROM contacts WHERE FirstName LIKE CONCAT(F_Name, '%');     
+    SELECT * FROM contacts WHERE UserID = U_ID AND 
+    (FirstName LIKE CONCAT('%', F_Name, '%') OR LastName LIKE CONCAT('%', F_Name, '%'));  
 END //
-*/
+
+DELIMITER ;
