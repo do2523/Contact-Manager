@@ -22,4 +22,4 @@ CREATE TABLE contacts (
 ) ENGINE = InnoDB;
 
 CREATE INDEX Owner_ID ON contacts (UserID);
-CREATE INDEX F_name on contacts (FirstName);
+CREATE INDEX F_name ON contacts (FirstName);
