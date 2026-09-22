@@ -18,7 +18,7 @@ CREATE PROCEDURE remove_user(
     IN U_pass VARCHAR(225)
 )
 BEGIN
-    DELETE FROM users WHERE Username = 'U_name' AND Password = 'U_pass';
+    DELETE FROM users WHERE Username = U_name AND Password = U_pass;
 END //
 
 -- Adds a contact to the contacts table
@@ -36,10 +36,10 @@ END //
 
 -- Deletes a contact from the contact table
 CREATE PROCEDURE delete_contact(
-    IN Con_ID INT,
+    IN Con_ID INT
 )
 BEGIN
-    DELETE FROM contacts WHERE ContactID = 'Con_ID';
+    DELETE FROM contacts WHERE ContactID = Con_ID;
 END //
 
 DELIMITER ;
