@@ -34,6 +34,7 @@
 
   function cacheEls() {
     els.logoutBtn = document.getElementById("logoutBtn");
+    els.welcomeMsg = document.getElementById("welcomeMsg");
     els.banner = document.getElementById("banner");
 
     els.loginTabBtn = document.getElementById("loginTabBtn");
@@ -80,7 +81,13 @@
   async function guardProtectedPage() {
     try {
       const user = await AuthApi.session();
-      if (!user) window.location.href = "index.html";
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      if (els.welcomeMsg && user.firstName) {
+        els.welcomeMsg.textContent = `Hi, ${user.firstName}`;
+      }
     } catch (err) {
       // Fail open during development so a missing session endpoint doesn't
       // lock the team out of the contacts page before auth is finished.

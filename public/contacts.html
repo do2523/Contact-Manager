@@ -3,17 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Lemon Pages</title>
+  <title>Contacts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Karla:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <header class="directory-header">
     <div class="directory-header__inner">
       <div class="brand">
-        <span class="brand__mark">The Lemon <em>Pages</em></span>
+        <span class="brand__mark">Contacts</span>
       </div>
       <div class="header-actions">
-        <span id="welcomeMsg" class="toolbar__meta" style="color:var(--yellow)"></span>
+        <span id="welcomeMsg" class="toolbar__meta"></span>
         <button type="button" id="logoutBtn" class="btn btn--ghost btn--small">Log Out</button>
       </div>
     </div>
@@ -22,25 +28,32 @@
   <main class="directory-main">
     <div id="banner" class="banner" role="status" hidden></div>
 
-    <section class="toolbar">
-      <form id="searchForm" class="search-box" role="search">
-        <span class="search-box__icon" aria-hidden="true">Find</span>
-        <label for="searchInput" class="visually-hidden">Search contacts by name</label>
-        <input type="search" id="searchInput" name="q" placeholder="Search by first or last name&hellip;" autocomplete="off" />
-      </form>
-      <span class="toolbar__meta" id="resultCount">0 listings</span>
-      <button type="button" id="addContactBtn" class="btn btn--primary">+ Add Contact</button>
-    </section>
+    <div class="directory-shell">
+      <div class="directory-panel">
+        <section class="panel-toolbar">
+          <form id="searchForm" class="search-box" role="search">
+            <span class="search-box__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+                <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+              </svg>
+            </span>
+            <label for="searchInput" class="visually-hidden">Search contacts by name</label>
+            <input type="search" id="searchInput" name="q" placeholder="Search by first or last name&hellip;" autocomplete="off" />
+          </form>
+          <span class="toolbar__meta" id="resultCount">0 contacts</span>
+          <button type="button" id="addContactBtn" class="btn btn--primary">+ Add Contact</button>
+        </section>
 
-    <nav class="alpha-index" id="alphaIndex" aria-label="Jump to letter">
-      <!-- populated by contacts.js -->
-    </nav>
-
-    <div id="listingsContainer">
-      <div class="state-panel" id="loadingState">
-        <div class="state-panel__title">Loading the directory&hellip;</div>
-        <p>Please hold the line.</p>
+        <div id="listingsContainer">
+          <div class="state-panel" id="loadingState">
+            <div class="state-panel__title">Loading your contacts&hellip;</div>
+          </div>
+        </div>
       </div>
+
+      <nav class="alpha-rail" id="alphaIndex" aria-label="Jump to letter">
+        <!-- populated by contacts.js -->
+      </nav>
     </div>
   </main>
 
@@ -81,7 +94,7 @@
         </div>
         <div class="ad-card__footer">
           <button type="button" class="btn" id="contactCancelBtn">Cancel</button>
-          <button type="submit" class="btn btn--primary" id="contactSaveBtn">Save Listing</button>
+          <button type="submit" class="btn btn--primary" id="contactSaveBtn">Save Contact</button>
         </div>
       </form>
     </div>
@@ -91,11 +104,11 @@
   <div class="modal-overlay" id="deleteModal" hidden>
     <div class="ad-card confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="deleteModalTitle">
       <div class="ad-card__header">
-        <span id="deleteModalTitle">Remove Listing</span>
+        <span id="deleteModalTitle">Remove Contact</span>
         <button type="button" class="ad-card__close" id="deleteModalClose" aria-label="Close">&times;</button>
       </div>
       <div class="confirm-card__body">
-        <p>Delete <strong id="deleteContactName">this contact</strong> from the directory? This cannot be undone.</p>
+        <p>Delete <strong id="deleteContactName">this contact</strong>? This can't be undone.</p>
       </div>
       <div class="ad-card__footer">
         <button type="button" class="btn" id="deleteCancelBtn">Cancel</button>

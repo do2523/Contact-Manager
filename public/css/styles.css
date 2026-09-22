@@ -1,41 +1,57 @@
 /* ===================================================================
-   The Lemon Pages — bold pop palette.
-   True yellow + true black, with a faded/dusty red accent (not a
-   vivid red) kept small for actions and selection. Vanilla CSS/JS,
-   no dependencies.
+   Contacts — Dark theme, purple accent.
+   A true dark UI: near-black page, elevated dark-purple surfaces for
+   the panel/cards, one unified violet accent for primary actions and
+   selection, a dedicated red kept separate for delete (a destructive
+   action earns its own unambiguous signal regardless of brand accent).
+   Keeps the book-ledger structure (thumb-index rail, sticky letter
+   headers, folded corner) — only the color system changed. Vanilla
+   CSS/JS; one Google Fonts <link> for Bricolage Grotesque + Karla, no
+   other external dependencies.
 =================================================================== */
 
 :root {
-  /* Surfaces */
-  --yellow: #ffd400;       /* the lemon */
-  --yellow-deep: #e6b800;  /* masthead rule / pressed accents */
-  --paper: #fffcef;        /* near-white card stock */
-  --paper-line: #e2e2e2;   /* faint rule tint on paper */
+  /* Surfaces — darkest to lightest: bg < surface-deep (recessed) < surface (elevated) */
+  --bg: #131017;
+  --surface: #1e1926;
+  --surface-deep: #191420;
+  --surface-line: #332b44;
+  --spine: #120d18; /* the rail — the book's binding, distinct from its pages */
 
-  /* Ink (true black) */
-  --ink: #000000;
-  --ink-soft: #3d3d3d;
+  /* Text (light-on-dark throughout — no dual light/dark surface split needed) */
+  --ink: #ede9f4;
+  --ink-soft: #b3a9c2;
+  /* Crisp white specifically for text on saturated accent fills — the
+     slightly warm --ink reads as washed-out gray against vivid purple. */
+  --ink-on-accent: #ffffff;
 
-  /* Accent pair: cherry-red (action) + teal (selection/focus, kept quiet) */
-  --red: #c81d25;          /* solid fills — paired with --paper text */
-  --red-deep: #8a1a17;     /* small text on yellow/paper (phone numbers, errors) */
-  --red-bright: #ff6b52;   /* text on --ink surfaces only */
-  --teal: #2f7a73;         /* decorative / non-text (shapes, borders) */
-  --teal-deep: #1e5852;    /* text-bearing teal: focus rings, selected state */
+  /* Accent: one purple family for primary actions + selection/focus */
+  --purple: #ad82de; /* text/foreground use on dark surfaces */
+  --purple-solid: #6b3fc7; /* solid fills, paired with --ink text */
+  --purple-solid-deep: #4f2e9c; /* hover-darken from purple-solid */
 
-  --green: #5a6626;        /* success text (avocado, muted) */
+  /* Danger stays its own red — destructive actions get an unambiguous
+     signal independent of the brand accent. */
+  --danger: #b8334a; /* solid fills, paired with --ink text */
+  --danger-deep: #8a2438; /* hover-darken from danger */
+  --danger-bright: #e15a6f; /* text/border use on dark surfaces */
+
+  /* Success is a semantic color, not the accent — kept separate. */
+  --success-deep: #1f4a2c;
 
   --radius-pill: 999px;
-  --radius-md: 18px;
-  --radius-sm: 9px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
 
-  --shadow-elevate: 0 20px 40px -14px rgba(0, 0, 0, 0.5);
-  --shadow-lift: 0 8px 16px -6px rgba(0, 0, 0, 0.35);
-  --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -10px rgba(0, 0, 0, 0.65);
+  --shadow-lift: 0 12px 22px -10px rgba(0, 0, 0, 0.55);
+  --shadow-elevate: 0 30px 56px -16px rgba(0, 0, 0, 0.7);
 
-  --font-display: "Century Gothic", Futura, Poppins, "Trebuchet MS", sans-serif;
-  --font-body: Georgia, "Times New Roman", serif;
-  --font-mono: "Courier New", Courier, monospace;
+  --font-display: "Bricolage Grotesque", -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Karla", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -44,24 +60,48 @@
   box-sizing: border-box;
 }
 
+html {
+  color-scheme: dark;
+  scrollbar-color: var(--surface-line) var(--bg);
+}
+
+::selection {
+  background: var(--purple-solid);
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-line);
+  border-radius: var(--radius-pill);
+  border: 3px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--purple-solid);
+}
+
 body {
   margin: 0;
-  background-color: var(--yellow);
-  background-image: radial-gradient(circle at 15% 20%, rgba(0, 0, 0, 0.06), transparent 42%),
-    radial-gradient(circle at 85% 65%, rgba(0, 0, 0, 0.05), transparent 46%),
-    radial-gradient(circle at 50% 95%, rgba(0, 0, 0, 0.04), transparent 55%);
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
   min-height: 100vh;
 }
 
-/* ---------- Top banner ---------- */
+/* ---------- Top header ---------- */
 .directory-header {
-  background: var(--ink);
-  color: var(--yellow);
-  border-bottom: 6px solid var(--ink);
-  box-shadow: 0 4px 0 var(--yellow-deep); /* flat masthead rule, not a drop shadow */
-  padding: 18px 24px;
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--surface-line), var(--shadow-rest);
+  padding: 16px 24px;
 }
 
 .directory-header__inner {
@@ -77,17 +117,22 @@ body {
 .brand__mark {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.9rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--paper);
+  font-size: 1.5rem;
+  color: var(--ink);
+  position: relative;
+  display: inline-block;
+  padding-bottom: 4px;
 }
 
-/* Signature detail: a hint of two-color print misregistration. */
-.brand__mark em {
-  font-style: normal;
-  color: var(--red-bright);
-  text-shadow: 2px 2px 0 var(--ink);
+.brand__mark::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 26px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--purple);
 }
 
 .header-actions {
@@ -97,21 +142,23 @@ body {
   flex-shrink: 0;
 }
 
-/* ---------- Buttons: rounded "dial" pills, flat ink-invert + soft lift ---------- */
+.header-actions .toolbar__meta {
+  color: var(--ink-soft);
+}
+
+/* ---------- Buttons: soft fills, shadow-based lift, no thick outlines ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 2px solid var(--ink);
+  border: 2px solid var(--surface-line);
   border-radius: var(--radius-pill);
-  padding: 10px 22px;
-  background: var(--yellow);
+  padding: 10px 20px;
+  background: var(--surface);
   color: var(--ink);
   cursor: pointer;
   box-shadow: var(--shadow-rest);
@@ -121,63 +168,78 @@ body {
 
 .btn:hover,
 .btn:focus-visible {
-  background: var(--ink);
-  color: var(--yellow);
+  background: var(--surface-deep);
+  border-color: var(--purple-solid);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lift);
 }
 
 .btn:active {
-  transform: translateY(0) scale(0.96);
+  transform: translateY(0) scale(0.97);
   box-shadow: var(--shadow-rest);
 }
 
 .btn--primary {
-  background: var(--red);
-  color: var(--paper);
-  border-color: var(--ink);
+  background: var(--purple-solid);
+  border-color: var(--purple-solid);
+  color: var(--ink-on-accent);
 }
 
 .btn--primary:hover,
 .btn--primary:focus-visible {
-  background: var(--ink);
-  color: var(--red-bright);
+  background: var(--purple-solid-deep);
+  border-color: var(--purple-solid-deep);
+  color: var(--ink-on-accent);
+}
+
+.btn--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--ink-on-accent);
+}
+
+.btn--danger:hover,
+.btn--danger:focus-visible {
+  background: var(--danger-deep);
+  border-color: var(--danger-deep);
+  color: var(--ink-on-accent);
+}
+
+.btn--small {
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  border: none;
+  background: var(--surface-deep);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.btn--small:hover,
+.btn--small:focus-visible {
+  background: var(--purple-solid);
+  color: var(--ink-on-accent);
+  box-shadow: none;
 }
 
 .btn--ghost {
   background: transparent;
-  color: var(--yellow);
-  border-color: var(--yellow);
+  border-color: var(--ink);
+  color: var(--ink);
   box-shadow: none;
 }
 
 .btn--ghost:hover,
 .btn--ghost:focus-visible {
-  background: var(--yellow);
+  background: rgba(237, 233, 244, 0.1);
   color: var(--ink);
   box-shadow: none;
-}
-
-.btn--danger {
-  background: var(--red);
-  color: var(--paper);
-}
-
-.btn--danger:hover,
-.btn--danger:focus-visible {
-  background: var(--ink);
-  color: var(--red-bright);
-}
-
-.btn--small {
-  padding: 6px 14px;
-  font-size: 0.7rem;
 }
 
 .btn--icon {
   width: 30px;
   height: 30px;
   padding: 0;
+  border: none;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -202,134 +264,181 @@ body {
   padding: 24px 20px 80px;
 }
 
-/* ---------- Search / toolbar strip ---------- */
-.toolbar {
-  background: var(--ink);
-  border: 3px solid var(--ink);
-  border-radius: var(--radius-md);
-  padding: 16px;
+/* ---------- The directory shell: one unified panel + a book-style
+   thumb-index rail, instead of a stack of separate floating cards. ---------- */
+.directory-shell {
+  display: grid;
+  grid-template-columns: 1fr 36px;
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+
+.directory-panel {
+  background: var(--surface);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+/* A small folded page-corner — the one signature physical detail. */
+.directory-shell::after {
+  content: "";
+  position: absolute;
+  right: 36px;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 22px 22px;
+  border-color: transparent transparent var(--surface-deep) transparent;
+  filter: drop-shadow(-1px -1px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* ---------- Search / toolbar strip (top of the panel) ---------- */
+.panel-toolbar {
+  background: var(--surface);
+  border-radius: var(--radius-lg) 0 0 0;
+  padding: 18px 20px;
   display: flex;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  border-bottom: 1px solid var(--surface-line);
 }
 
 .search-box {
   display: flex;
+  align-items: center;
+  gap: 8px;
   flex: 1 1 320px;
   min-width: 220px;
+  background: var(--surface-deep);
   border-radius: var(--radius-pill);
-  overflow: hidden;
-  border: 2px solid var(--yellow);
+  padding: 0 16px;
+  transition: box-shadow 150ms ease;
+}
+
+.search-box:focus-within {
+  box-shadow: 0 0 0 3px rgba(107, 63, 199, 0.35);
 }
 
 .search-box__icon {
-  background: var(--yellow);
-  color: var(--ink);
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 16px;
-  font-weight: 700;
-  font-family: var(--font-display);
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.search-box__icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .search-box input[type="search"] {
   flex: 1;
   border: none;
-  padding: 10px 16px;
-  font-family: var(--font-mono);
-  font-size: 1rem;
-  background: var(--paper);
+  background: transparent;
+  padding: 11px 0;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   color: var(--ink);
 }
 
+.search-box input[type="search"]::placeholder {
+  color: var(--ink-soft);
+}
+
 .search-box input[type="search"]:focus {
-  outline: 2px solid var(--teal-deep);
-  outline-offset: -2px;
+  outline: none;
 }
 
 .toolbar__meta {
-  color: var(--paper);
+  color: var(--ink-soft);
   font-family: var(--font-mono);
   font-size: 0.8rem;
   white-space: nowrap;
 }
 
-/* ---------- Alphabet index: circular "radio dial" buttons ---------- */
-.alpha-index {
+/* ---------- Alphabet rail: the book's binding, with a real thumb-index
+   tab strip — jump to a letter without scrolling. ---------- */
+.alpha-rail {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 18px;
-  padding: 12px;
-  background: var(--paper);
-  border: 2px solid var(--ink);
-  border-radius: var(--radius-md);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
+  padding: 10px 3px;
+  background: var(--spine);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
 }
 
-.alpha-index button {
+.alpha-rail button {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.75rem;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  background: var(--yellow);
-  color: var(--ink);
+  font-size: 0.62rem;
+  line-height: 1;
+  padding: 3.5px 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-soft);
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, transform 150ms var(--ease-out),
-    box-shadow 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease, transform 100ms var(--ease-out);
 }
 
-.alpha-index button:hover:not(:disabled) {
-  background: var(--ink);
-  color: var(--yellow);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lift);
+.alpha-rail button:hover:not(:disabled) {
+  background: rgba(173, 130, 222, 0.22);
+  color: var(--ink);
 }
 
-.alpha-index button:active:not(:disabled) {
-  transform: scale(0.9);
+.alpha-rail button:active:not(:disabled) {
+  transform: scale(0.88);
 }
 
-.alpha-index button[disabled] {
-  opacity: 0.3;
+.alpha-rail button[disabled] {
+  opacity: 0.35;
   cursor: default;
-  background: var(--paper);
 }
 
-.alpha-index button.is-active {
-  background: var(--teal-deep);
-  color: var(--paper);
-  border-color: var(--ink);
-  animation: tab-pop 220ms var(--ease-out);
+.alpha-rail button.is-active {
+  background: var(--purple-solid);
+  color: var(--ink-on-accent);
+  border-radius: 999px 0 0 999px;
+  transform: translateX(-7px);
+  box-shadow: -3px 2px 8px rgba(0, 0, 0, 0.5);
+  animation: tab-pop 240ms var(--ease-out);
 }
 
 #alphaIndex button:first-child {
-  width: auto;
-  border-radius: var(--radius-pill);
-  padding: 0 14px;
+  font-size: 0.56rem;
+  letter-spacing: 0.03em;
+  padding-bottom: 6px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid rgba(179, 169, 194, 0.2);
 }
 
+/* Ends at .alpha-rail button.is-active's resting transform (translateX(-7px)
+   scale(1)) so the animation hands off to the static state with no snap. */
 @keyframes tab-pop {
   0% {
-    transform: scale(1);
+    transform: translateX(0) scale(1);
   }
-  45% {
-    transform: scale(1.18);
+  50% {
+    transform: translateX(-10px) scale(1.15);
   }
   100% {
-    transform: scale(1);
+    transform: translateX(-7px) scale(1);
   }
 }
 
-/* ---------- Listing groups (phone-book columns) ---------- */
+/* ---------- Listing groups: sticky letter headers inside the one panel,
+   like flipping through an address book — not a repeated card shape. ---------- */
+#listingsContainer {
+  padding: 4px 20px 4px;
+}
+
 .listing-group {
-  margin-bottom: 22px;
   animation: group-in 340ms var(--ease-out) both;
   animation-delay: calc(var(--gi, 0) * 55ms);
 }
@@ -346,20 +455,26 @@ body {
 }
 
 .listing-group__letter {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.5rem;
-  color: var(--ink);
-  text-shadow: 2px 2px 0 var(--red);
-  border-bottom: 3px solid var(--ink);
-  padding-bottom: 4px;
-  margin-bottom: 10px;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--purple);
+  padding: 14px 0 8px;
+  border-bottom: 2px solid var(--purple-solid);
+  margin-bottom: 4px;
+  box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.6);
+  z-index: 2;
 }
 
 .listing-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0 32px;
+  gap: 0 24px;
 }
 
 @media (max-width: 720px) {
@@ -368,62 +483,66 @@ body {
   }
 }
 
-/* ---------- Single listing entry (dot-leader style) ---------- */
+/* ---------- Single listing entry ---------- */
 .listing {
-  position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: baseline;
   gap: 6px;
-  padding: 12px 6px;
-  border-bottom: 1px dotted var(--ink-soft);
+  padding: 12px 10px;
   border-radius: var(--radius-sm);
-  transition: background-color 150ms ease;
+  border-bottom: 1px solid var(--surface-line);
+  transition: background-color 150ms ease, opacity 200ms ease, transform 200ms var(--ease-out);
+}
+
+/* Delete's exit: the row visibly leaves before it's gone, instead of
+   just vanishing on the next render. Transform/opacity only — no
+   layout-property animation (max-height, padding) to avoid reflow cost. */
+.listing.is-removing {
+  opacity: 0;
+  transform: scale(0.95) translateX(6px);
+  pointer-events: none;
+}
+
+/* Post-mutation re-renders (add/edit/delete) skip the entrance stagger —
+   only a genuinely new result set (load, search, filter) earns it. */
+.listing-group.no-entrance {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+.listing-grid > .listing:last-child {
+  border-bottom: none;
 }
 
 .listing:hover,
 .listing:focus-within {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-/* "Red pen" trace-under on hover/focus — marking an entry in the book */
-.listing::after {
-  content: "";
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  bottom: -1px;
-  height: 2px;
-  background: var(--red);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 250ms var(--ease-out);
-}
-
-.listing:hover::after,
-.listing:focus-within::after {
-  transform: scaleX(1);
+  background: var(--surface-deep);
 }
 
 .listing__name {
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--ink);
 }
 
 .listing__name .listing__email {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-weight: normal;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--ink-soft);
+  margin-top: 2px;
 }
 
 .listing__phone {
   font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--red-deep);
+  font-weight: 600;
+  color: var(--purple);
   white-space: nowrap;
+  font-size: 0.88rem;
 }
 
 .listing__actions {
@@ -431,26 +550,26 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .listing__created {
   grid-column: 1 / -1;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
   color: var(--ink-soft);
 }
 
-/* ---------- Skeleton loading (modern app pattern) ---------- */
+/* ---------- Skeleton loading ---------- */
 .skeleton-group {
-  margin-bottom: 26px;
+  padding: 14px 0;
 }
 
 .skeleton-line {
   height: 14px;
   border-radius: var(--radius-sm);
   margin-bottom: 10px;
-  background: linear-gradient(90deg, var(--paper) 25%, #fffdf5 37%, var(--paper) 63%);
+  background: linear-gradient(90deg, var(--surface-deep) 25%, var(--surface-line) 37%, var(--surface-deep) 63%);
   background-size: 400% 100%;
   animation: skeleton-shimmer 1.4s ease infinite;
 }
@@ -482,27 +601,22 @@ body {
 .state-panel {
   text-align: center;
   padding: 48px 20px;
-  border: 3px dashed var(--ink);
-  border-radius: var(--radius-md);
-  background: var(--paper);
   color: var(--ink-soft);
-  font-family: var(--font-mono);
 }
 
 .state-panel__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: var(--ink);
   margin-bottom: 6px;
-  text-transform: uppercase;
 }
 
-/* ---------- Modal (Add / Edit — "classified ad" card) ---------- */
+/* ---------- Modal (Add / Edit, Delete confirm) ---------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -525,12 +639,11 @@ body {
 }
 
 .ad-card {
-  background: var(--paper);
-  border: 3px solid var(--ink);
-  border-radius: var(--radius-md);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-elevate);
   width: 100%;
-  max-width: 460px;
+  max-width: 440px;
   padding: 0;
   overflow: hidden;
 }
@@ -547,22 +660,22 @@ body {
 }
 
 .ad-card__header {
-  background: var(--ink);
-  color: var(--yellow);
-  padding: 14px 20px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 18px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-family: var(--font-display);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 1.05rem;
+  border-bottom: 1px solid var(--surface-line);
 }
 
 .ad-card__close {
   background: none;
   border: none;
-  color: var(--yellow);
+  color: var(--ink-soft);
   font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
@@ -570,65 +683,65 @@ body {
 }
 
 .ad-card__close:hover {
-  color: var(--red-bright);
+  color: var(--danger-bright);
   transform: rotate(90deg);
 }
 
 .ad-card__body {
-  padding: 20px;
-  border-top: 2px dashed var(--paper-line);
+  padding: 22px;
 }
 
 .field {
   margin-bottom: 14px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .field label {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
   color: var(--ink-soft);
 }
 
 .field input {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.95rem;
-  padding: 10px 12px;
-  border: 2px solid var(--ink);
+  padding: 11px 14px;
+  border: 1.5px solid var(--surface-line);
   border-radius: var(--radius-sm);
-  background: #fffdf7;
+  background: var(--surface-deep);
   color: var(--ink);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 
 .field input:focus {
   outline: none;
-  border-color: var(--teal-deep);
-  box-shadow: 0 0 0 3px rgba(30, 88, 82, 0.2);
+  border-color: var(--purple-solid);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(107, 63, 199, 0.3);
 }
 
 .field--error input {
-  border-color: var(--red-deep);
+  border-color: var(--danger-bright);
 }
 
 .field--error input:focus {
-  box-shadow: 0 0 0 3px rgba(138, 26, 23, 0.2);
+  box-shadow: 0 0 0 3px rgba(225, 90, 111, 0.25);
 }
 
 .field__error {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--red-deep);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--danger-bright);
   min-height: 1em;
 }
 
 .ad-card__footer {
-  padding: 14px 20px 20px;
+  padding: 14px 22px 22px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -662,7 +775,7 @@ body {
   gap: 4px;
   padding: 4px;
   margin-bottom: 20px;
-  background: var(--ink);
+  background: var(--surface-deep);
   border-radius: var(--radius-pill);
 }
 
@@ -670,12 +783,10 @@ body {
   flex: 1;
   border: none;
   background: transparent;
-  color: var(--yellow);
+  color: var(--ink-soft);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   padding: 10px 0;
   border-radius: var(--radius-pill);
   cursor: pointer;
@@ -683,12 +794,12 @@ body {
 }
 
 .auth-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(237, 233, 244, 0.08);
 }
 
 .auth-tab.is-active {
-  background: var(--teal-deep);
-  color: var(--paper);
+  background: var(--purple-solid);
+  color: var(--ink-on-accent);
 }
 
 #loginForm,
@@ -708,7 +819,7 @@ body {
 }
 
 .confirm-card__body {
-  padding: 20px;
+  padding: 22px;
   font-family: var(--font-body);
   font-size: 1rem;
 }
@@ -718,12 +829,13 @@ body {
   font-weight: 700;
 }
 
-/* ---------- Toast / inline banner ---------- */
+/* ---------- Toast / inline banner (intentionally light — a toast should
+   pop against a dark page, not blend into another dark surface) ---------- */
 .banner {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: 0.85rem;
-  padding: 10px 16px;
-  border: 2px solid var(--ink);
+  padding: 12px 16px;
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
   animation: banner-in 220ms var(--ease-out) both;
@@ -741,15 +853,13 @@ body {
 }
 
 .banner--error {
-  background: #fbe4e0;
-  color: var(--red-deep);
-  border-color: var(--red-deep);
+  background: #f8e1e5;
+  color: #7a1f30;
 }
 
 .banner--success {
-  background: #eef0dc;
-  color: var(--green);
-  border-color: var(--green);
+  background: #e2f0e6;
+  color: var(--success-deep);
 }
 
 .banner[hidden] {
@@ -772,15 +882,19 @@ body {
   .banner,
   .auth-card,
   #loginForm,
-  #registerForm,
-  .alpha-index button.is-active {
+  #registerForm {
     animation: none;
     opacity: 1;
     transform: none;
   }
+  /* The rail's protruded position is a state indicator, not decoration —
+     keep the static transform, just drop the bounce that gets there. */
+  .alpha-rail button.is-active {
+    animation: none;
+  }
   .skeleton-line {
     animation: skeleton-pulse 1.4s ease-in-out infinite;
-    background: var(--paper-line);
+    background: var(--surface-line);
   }
   .ad-card {
     transition: opacity 150ms linear;
@@ -793,21 +907,26 @@ body {
     transition: opacity 150ms linear;
   }
   .btn,
-  .alpha-index button,
+  .alpha-rail button,
   .ad-card__close {
     transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
   }
-  .btn:hover,
-  .alpha-index button:hover {
+  .btn:hover {
     transform: none;
     box-shadow: none;
   }
-  .btn:active,
-  .alpha-index button:active {
+  .alpha-rail button:hover:not(.is-active) {
     transform: none;
   }
-  .listing::after {
-    transition: none;
+  .btn:active,
+  .alpha-rail button:active:not(.is-active) {
+    transform: none;
+  }
+  .listing {
+    transition: background-color 150ms ease, opacity 150ms linear;
+  }
+  .listing.is-removing {
+    transform: none;
   }
 }
 
@@ -823,7 +942,7 @@ body {
 
 @media (max-width: 480px) {
   .brand__mark {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
   .directory-header__inner {
     align-items: flex-start;
@@ -831,12 +950,18 @@ body {
   .header-actions {
     padding-top: 4px;
   }
-  .toolbar {
+  .panel-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
   .search-box {
     flex: none;
+  }
+  .directory-shell {
+    grid-template-columns: 1fr 30px;
+  }
+  .directory-shell::after {
+    right: 30px;
   }
   .listing {
     grid-template-columns: 1fr;

@@ -26,6 +26,7 @@
 
   const els = {};
   const MODAL_TRANSITION_MS = 220;
+  const ROW_REMOVE_MS = 200; // matches .listing's exit transition in styles.css
 
   const TRASH_ICON =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
@@ -124,7 +125,7 @@
       state.contacts = contacts;
       renderAll();
     } catch (err) {
-      showBanner("Could not load the directory. " + err.message, "error");
+      showBanner("Could not load your contacts. " + err.message, "error");
       state.contacts = [];
       renderAll();
     }
@@ -166,13 +167,13 @@
       skeletonGroup.repeat(3);
   }
 
-  function renderAll() {
+  function renderAll(opts) {
     const visible = state.activeLetter
       ? state.contacts.filter(
           (c) => (c.lastName || "").charAt(0).toUpperCase() === state.activeLetter
         )
       : state.contacts;
-    renderListings(visible);
+    renderListings(visible, opts);
     renderAlphaIndex(state.contacts);
   }
 
@@ -186,8 +187,6 @@
     const allBtn = document.createElement("button");
     allBtn.type = "button";
     allBtn.textContent = "All";
-    allBtn.style.width = "auto";
-    allBtn.style.padding = "0 10px";
     if (!state.activeLetter) allBtn.classList.add("is-active");
     allBtn.addEventListener("click", () => {
       state.activeLetter = null;
@@ -210,16 +209,14 @@
     });
   }
 
-  function renderListings(list) {
-    els.resultCount.textContent = `${list.length} listing${list.length === 1 ? "" : ""}`.replace(
-      /listing$/,
-      list.length === 1 ? "listing" : "listings"
-    );
+  function renderListings(list, opts) {
+    const skipEntrance = Boolean(opts && opts.skipEntrance);
+    els.resultCount.textContent = `${list.length} ${list.length === 1 ? "contact" : "contacts"}`;
 
     if (list.length === 0) {
       const message = state.searchTerm
-        ? `No listings match "${escapeHtml(state.searchTerm)}".`
-        : "No contacts yet. Add the first listing to get started.";
+        ? `No contacts match "${escapeHtml(state.searchTerm)}".`
+        : "No contacts yet. Add your first contact to get started.";
       els.listingsContainer.innerHTML = `
         <div class="state-panel">
           <div class="state-panel__title">Nothing Found</div>
@@ -245,7 +242,7 @@
     const html = [...groups.entries()]
       .map(
         ([letter, contacts], i) => `
-        <section class="listing-group" data-letter="${letter}" style="--gi:${Math.min(i, MAX_STAGGER)}">
+        <section class="listing-group${skipEntrance ? " no-entrance" : ""}" data-letter="${letter}" style="--gi:${Math.min(i, MAX_STAGGER)}">
           <h2 class="listing-group__letter">${letter}</h2>
           <div class="listing-grid">
             ${contacts.map(renderListingRow).join("")}
@@ -297,7 +294,7 @@
 
   function openContactModal(contact) {
     state.editingId = contact ? contact.id : null;
-    els.contactModalTitle.textContent = contact ? "Edit Listing" : "New Contact";
+    els.contactModalTitle.textContent = contact ? "Edit Contact" : "New Contact";
     els.contactId.value = contact ? contact.id : "";
     els.firstName.value = contact ? contact.firstName || "" : "";
     els.lastName.value = contact ? contact.lastName || "" : "";
@@ -372,16 +369,16 @@
         payload.id = state.editingId;
         const updated = await ContactsApi.update(payload);
         replaceContact(updated);
-        showBanner("Listing updated.", "success");
+        showBanner("Contact updated.", "success");
       } else {
         const created = await ContactsApi.create(payload);
         state.contacts.push(created);
-        showBanner("Listing added.", "success");
+        showBanner("Contact added.", "success");
       }
       closeContactModal();
-      renderAll();
+      renderAll({ skipEntrance: true });
     } catch (err) {
-      showBanner("Could not save this listing. " + err.message, "error");
+      showBanner("Could not save this contact. " + err.message, "error");
     } finally {
       els.contactSaveBtn.disabled = false;
     }
@@ -407,20 +404,36 @@
 
   async function onConfirmDelete() {
     if (!state.deletingId) return;
+    const id = state.deletingId;
     els.deleteConfirmBtn.disabled = true;
     try {
-      await ContactsApi.remove(state.deletingId);
-      state.contacts = state.contacts.filter(
-        (c) => String(c.id) !== String(state.deletingId)
-      );
-      showBanner("Listing deleted.", "success");
+      await ContactsApi.remove(id);
       closeDeleteModal();
-      renderAll();
+      showBanner("Contact deleted.", "success");
+      removeRowThenRender(id);
     } catch (err) {
-      showBanner("Could not delete this listing. " + err.message, "error");
+      showBanner("Could not delete this contact. " + err.message, "error");
     } finally {
       els.deleteConfirmBtn.disabled = false;
     }
+  }
+
+  // Lets the row visibly leave (collapse + fade) before it disappears from
+  // the list, instead of just vanishing on the next render.
+  function removeRowThenRender(id) {
+    const row = els.listingsContainer.querySelector(
+      `.listing[data-id="${CSS.escape(String(id))}"]`
+    );
+    if (!row) {
+      state.contacts = state.contacts.filter((c) => String(c.id) !== String(id));
+      renderAll({ skipEntrance: true });
+      return;
+    }
+    row.classList.add("is-removing");
+    window.setTimeout(() => {
+      state.contacts = state.contacts.filter((c) => String(c.id) !== String(id));
+      renderAll({ skipEntrance: true });
+    }, ROW_REMOVE_MS);
   }
 
   // ---------------- Helpers ----------------
