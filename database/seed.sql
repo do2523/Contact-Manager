@@ -1,5 +1,7 @@
 USE contact_manager;
 
+CREATE USER 'DB_User'@'localhost' IDENTIFIED BY 'DB_Password';
+
 DELIMITER //
 
 -- Creates procedure to insert 10 records of test contact data into contact
