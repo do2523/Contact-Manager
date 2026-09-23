@@ -53,4 +53,28 @@ BEGIN
     (FirstName LIKE CONCAT('%', F_Name, '%') OR LastName LIKE CONCAT('%', F_Name, '%'));  
 END //
 
+-- Retrieve all contacts belonging to a specific user
+CREATE PROCEDURE get_contacts(
+    IN U_ID INT
+)
+BEGIN
+    SELECT * FROM contacts WHERE UserID = U_ID;
+END //
+
+-- Updates a contact's information in the contacts table
+CREATE PROCEDURE update_contact(
+    IN Con_ID INT,
+    IN U_ID INT,
+    IN F_Name VARCHAR(50),
+    IN L_Name VARCHAR(50),
+    IN E_mail VARCHAR(100),
+    IN Phone_num VARCHAR(20)
+)
+BEGIN
+    UPDATE contacts
+    SET FirstName = F_Name, LastName = L_Name, Email = E_mail,
+    Phone = Phone_num
+    WHERE ContactID = Con_ID AND UserID = U_ID;
+END //
+
 DELIMITER ;
