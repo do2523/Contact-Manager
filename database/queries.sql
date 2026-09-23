@@ -37,9 +37,10 @@ END //
 -- Deletes a contact from the contact table
 CREATE PROCEDURE delete_contact(
     IN Con_ID INT
+    IN U_ID INT
 )
 BEGIN
-    DELETE FROM contacts WHERE ContactID = Con_ID;
+    DELETE FROM contacts WHERE ContactID = Con_ID AND UserID = U_ID;
 END //
 
 
