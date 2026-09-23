@@ -5,7 +5,7 @@ DELIMITER //
 -- Adds a new user to the user table
 CREATE PROCEDURE add_user(
     IN U_name VARCHAR(50),
-    IN U_pass VARCHAR(225)
+    IN U_pass VARCHAR(255)
 )
 BEGIN
     INSERT INTO users(Username, Password)
@@ -15,7 +15,7 @@ END //
 -- Deletes a user from the user table
 CREATE PROCEDURE remove_user(
     IN U_name VARCHAR(50),
-    IN U_pass VARCHAR(225)
+    IN U_pass VARCHAR(255)
 )
 BEGIN
     DELETE FROM users WHERE Username = U_name AND Password = U_pass;
