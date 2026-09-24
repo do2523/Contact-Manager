@@ -23,3 +23,4 @@ CREATE TABLE contacts (
 
 CREATE INDEX Owner_ID ON contacts (UserID);
 CREATE INDEX F_name ON contacts (FirstName);
+CREATE INDEX L_name ON contacts (LastName);
