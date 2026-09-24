@@ -11,5 +11,6 @@ fi
     echo "Setting up Database"
     sudo mysql -u "$USER" -p"$PASWD" < schema.sql
     sudo mysql -u "$USER" -p"$PASWD" < seed.sql
+    sudo mysql -u "$USER" -p"$PASWD" < queries.sql
     echo "Finished"
     
