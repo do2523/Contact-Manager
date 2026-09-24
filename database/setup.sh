@@ -13,8 +13,8 @@ fi
     sudo mysql <<EOF
     CREATE DATABASE IF NOT EXISTS contact_manager;
     USE contact_manager; 
-    CREATE USER 'DB_User'@'%' IDENTIFIED BY 'DB_Password';
-    GRANT ALL PRIVILEGES on contact_manager. * to 'DB_User'@'%';
+    CREATE USER '$USER'@'%' IDENTIFIED BY '$PASWD';
+    GRANT ALL PRIVILEGES on contact_manager.* to '$USER'@'%';
     FLUSH PRIVILEGES;
 EOF 
     mysql -u "$USER" -p"$PASWD" < schema.sql
