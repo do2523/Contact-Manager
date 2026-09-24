@@ -1,7 +1,5 @@
 USE contact_manager;
 
-CREATE USER 'DB_User'@'%' IDENTIFIED BY 'DB_Password';
-GRANT ALL PRIVILEGES on contact_manager. * to 'DB_User'@'%'; 
 DELIMITER //
 
 -- Creates procedure to insert 10 records of test contact data into contact
