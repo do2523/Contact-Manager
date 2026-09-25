@@ -79,4 +79,15 @@ BEGIN
     WHERE ContactID = Con_ID AND UserID = U_ID;
 END //
 
+-- Searches for and matches username and password for authenticating returns 1 if authenticated 0 if not
+CREATE PROCEDURE auth_user(
+    IN U_Nm VARCHAR(50),
+    IN U_Psw VARCHAR(255)
+)
+BEGIN
+    DECLARE auth_flag INT DEFAULT 0;
+    SELECT COUNT(*) INTO auth_flag from users Where Username = U_Nm AND Password = U_Psw;
+    Select auth_flag;
+END//
+
 DELIMITER ;
