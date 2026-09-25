@@ -6,13 +6,15 @@ $password = "";
 $database = "login_db";
 
 // Create MySQL connection
-$mysql = new mysqli(hostname: $host, username: $username, password: $password, database: $database);
+$mysqli = new mysqli(hostname: $host, username: $username, password: $password, database: $database);
 
 // Check if connection failed
-if($mysql -> connect_error)
+if($mysqli -> connect_error)
     {
-        die("Connection error:" . $mysql -> connect_error);
+        http_response_code(500);
+        echo json_encode(["error" => "SQL Error" . $mysqli -> connect_error]);
+        exit;
     }
 
-return $mysql;
+return $mysqli;
 ?>
