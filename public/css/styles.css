@@ -1,0 +1,972 @@
+/* ===================================================================
+   Contacts — Dark theme, purple accent.
+   A true dark UI: near-black page, elevated dark-purple surfaces for
+   the panel/cards, one unified violet accent for primary actions and
+   selection, a dedicated red kept separate for delete (a destructive
+   action earns its own unambiguous signal regardless of brand accent).
+   Keeps the book-ledger structure (thumb-index rail, sticky letter
+   headers, folded corner) — only the color system changed. Vanilla
+   CSS/JS; one Google Fonts <link> for Bricolage Grotesque + Karla, no
+   other external dependencies.
+=================================================================== */
+
+:root {
+  /* Surfaces — darkest to lightest: bg < surface-deep (recessed) < surface (elevated) */
+  --bg: #131017;
+  --surface: #1e1926;
+  --surface-deep: #191420;
+  --surface-line: #332b44;
+  --spine: #120d18; /* the rail — the book's binding, distinct from its pages */
+
+  /* Text (light-on-dark throughout — no dual light/dark surface split needed) */
+  --ink: #ede9f4;
+  --ink-soft: #b3a9c2;
+  /* Crisp white specifically for text on saturated accent fills — the
+     slightly warm --ink reads as washed-out gray against vivid purple. */
+  --ink-on-accent: #ffffff;
+
+  /* Accent: one purple family for primary actions + selection/focus */
+  --purple: #ad82de; /* text/foreground use on dark surfaces */
+  --purple-solid: #6b3fc7; /* solid fills, paired with --ink text */
+  --purple-solid-deep: #4f2e9c; /* hover-darken from purple-solid */
+
+  /* Danger stays its own red — destructive actions get an unambiguous
+     signal independent of the brand accent. */
+  --danger: #b8334a; /* solid fills, paired with --ink text */
+  --danger-deep: #8a2438; /* hover-darken from danger */
+  --danger-bright: #e15a6f; /* text/border use on dark surfaces */
+
+  /* Success is a semantic color, not the accent — kept separate. */
+  --success-deep: #1f4a2c;
+
+  --radius-pill: 999px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -10px rgba(0, 0, 0, 0.65);
+  --shadow-lift: 0 12px 22px -10px rgba(0, 0, 0, 0.55);
+  --shadow-elevate: 0 30px 56px -16px rgba(0, 0, 0, 0.7);
+
+  --font-display: "Bricolage Grotesque", -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Karla", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  scrollbar-color: var(--surface-line) var(--bg);
+}
+
+::selection {
+  background: var(--purple-solid);
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-line);
+  border-radius: var(--radius-pill);
+  border: 3px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--purple-solid);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+/* ---------- Top header ---------- */
+.directory-header {
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--surface-line), var(--shadow-rest);
+  padding: 16px 24px;
+}
+
+.directory-header__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--ink);
+  position: relative;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+.brand__mark::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 26px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--purple);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.header-actions .toolbar__meta {
+  color: var(--ink-soft);
+}
+
+/* ---------- Buttons: soft fills, shadow-based lift, no thick outlines ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 2px solid var(--surface-line);
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: var(--shadow-rest);
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease,
+    transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+}
+
+.btn:hover,
+.btn:focus-visible {
+  background: var(--surface-deep);
+  border-color: var(--purple-solid);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: var(--shadow-rest);
+}
+
+.btn--primary {
+  background: var(--purple-solid);
+  border-color: var(--purple-solid);
+  color: var(--ink-on-accent);
+}
+
+.btn--primary:hover,
+.btn--primary:focus-visible {
+  background: var(--purple-solid-deep);
+  border-color: var(--purple-solid-deep);
+  color: var(--ink-on-accent);
+}
+
+.btn--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--ink-on-accent);
+}
+
+.btn--danger:hover,
+.btn--danger:focus-visible {
+  background: var(--danger-deep);
+  border-color: var(--danger-deep);
+  color: var(--ink-on-accent);
+}
+
+.btn--small {
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  border: none;
+  background: var(--surface-deep);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.btn--small:hover,
+.btn--small:focus-visible {
+  background: var(--purple-solid);
+  color: var(--ink-on-accent);
+  box-shadow: none;
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--ink);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.btn--ghost:hover,
+.btn--ghost:focus-visible {
+  background: rgba(237, 233, 244, 0.1);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.btn--icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.btn--icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* ---------- Page shell ---------- */
+.directory-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+/* ---------- The directory shell: one unified panel + a book-style
+   thumb-index rail, instead of a stack of separate floating cards. ---------- */
+.directory-shell {
+  display: grid;
+  grid-template-columns: 1fr 36px;
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+
+.directory-panel {
+  background: var(--surface);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+/* A small folded page-corner — the one signature physical detail. */
+.directory-shell::after {
+  content: "";
+  position: absolute;
+  right: 36px;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 22px 22px;
+  border-color: transparent transparent var(--surface-deep) transparent;
+  filter: drop-shadow(-1px -1px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* ---------- Search / toolbar strip (top of the panel) ---------- */
+.panel-toolbar {
+  background: var(--surface);
+  border-radius: var(--radius-lg) 0 0 0;
+  padding: 18px 20px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--surface-line);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 320px;
+  min-width: 220px;
+  background: var(--surface-deep);
+  border-radius: var(--radius-pill);
+  padding: 0 16px;
+  transition: box-shadow 150ms ease;
+}
+
+.search-box:focus-within {
+  box-shadow: 0 0 0 3px rgba(107, 63, 199, 0.35);
+}
+
+.search-box__icon {
+  display: flex;
+  align-items: center;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.search-box__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.search-box input[type="search"] {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 11px 0;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.search-box input[type="search"]::placeholder {
+  color: var(--ink-soft);
+}
+
+.search-box input[type="search"]:focus {
+  outline: none;
+}
+
+.toolbar__meta {
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* ---------- Alphabet rail: the book's binding, with a real thumb-index
+   tab strip — jump to a letter without scrolling. ---------- */
+.alpha-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
+  padding: 10px 3px;
+  background: var(--spine);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.alpha-rail button {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.62rem;
+  line-height: 1;
+  padding: 3.5px 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, transform 100ms var(--ease-out);
+}
+
+.alpha-rail button:hover:not(:disabled) {
+  background: rgba(173, 130, 222, 0.22);
+  color: var(--ink);
+}
+
+.alpha-rail button:active:not(:disabled) {
+  transform: scale(0.88);
+}
+
+.alpha-rail button[disabled] {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.alpha-rail button.is-active {
+  background: var(--purple-solid);
+  color: var(--ink-on-accent);
+  border-radius: 999px 0 0 999px;
+  transform: translateX(-7px);
+  box-shadow: -3px 2px 8px rgba(0, 0, 0, 0.5);
+  animation: tab-pop 240ms var(--ease-out);
+}
+
+#alphaIndex button:first-child {
+  font-size: 0.56rem;
+  letter-spacing: 0.03em;
+  padding-bottom: 6px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid rgba(179, 169, 194, 0.2);
+}
+
+/* Ends at .alpha-rail button.is-active's resting transform (translateX(-7px)
+   scale(1)) so the animation hands off to the static state with no snap. */
+@keyframes tab-pop {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  50% {
+    transform: translateX(-10px) scale(1.15);
+  }
+  100% {
+    transform: translateX(-7px) scale(1);
+  }
+}
+
+/* ---------- Listing groups: sticky letter headers inside the one panel,
+   like flipping through an address book — not a repeated card shape. ---------- */
+#listingsContainer {
+  padding: 4px 20px 4px;
+}
+
+.listing-group {
+  animation: group-in 340ms var(--ease-out) both;
+  animation-delay: calc(var(--gi, 0) * 55ms);
+}
+
+@keyframes group-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.listing-group__letter {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--purple);
+  padding: 14px 0 8px;
+  border-bottom: 2px solid var(--purple-solid);
+  margin-bottom: 4px;
+  box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.6);
+  z-index: 2;
+}
+
+.listing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 24px;
+}
+
+@media (max-width: 720px) {
+  .listing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Single listing entry ---------- */
+.listing {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: var(--radius-sm);
+  border-bottom: 1px solid var(--surface-line);
+  transition: background-color 150ms ease, opacity 200ms ease, transform 200ms var(--ease-out);
+}
+
+/* Delete's exit: the row visibly leaves before it's gone, instead of
+   just vanishing on the next render. Transform/opacity only — no
+   layout-property animation (max-height, padding) to avoid reflow cost. */
+.listing.is-removing {
+  opacity: 0;
+  transform: scale(0.95) translateX(6px);
+  pointer-events: none;
+}
+
+/* Post-mutation re-renders (add/edit/delete) skip the entrance stagger —
+   only a genuinely new result set (load, search, filter) earns it. */
+.listing-group.no-entrance {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+.listing-grid > .listing:last-child {
+  border-bottom: none;
+}
+
+.listing:hover,
+.listing:focus-within {
+  background: var(--surface-deep);
+}
+
+.listing__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.listing__name .listing__email {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: normal;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.listing__phone {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--purple);
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+.listing__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.listing__created {
+  grid-column: 1 / -1;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- Skeleton loading ---------- */
+.skeleton-group {
+  padding: 14px 0;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, var(--surface-deep) 25%, var(--surface-line) 37%, var(--surface-deep) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+.skeleton-line--title {
+  width: 70px;
+  height: 20px;
+}
+
+.skeleton-line--name {
+  width: 60%;
+}
+
+.skeleton-line--detail {
+  width: 40%;
+  height: 10px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* ---------- Empty / loading states ---------- */
+.state-panel {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--ink-soft);
+}
+
+.state-panel__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+/* ---------- Modal (Add / Edit, Delete confirm) ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 0s linear 200ms;
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 200ms ease;
+}
+
+.ad-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevate);
+  width: 100%;
+  max-width: 440px;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The enter-transform belongs to the modal context, not the card itself,
+   so the same card can be reused as a static page element (see .auth-card). */
+.modal-overlay .ad-card {
+  transform: translateY(14px) scale(0.97);
+  transition: transform 220ms var(--ease-out);
+}
+
+.modal-overlay.is-open .ad-card {
+  transform: translateY(0) scale(1);
+}
+
+.ad-card__header {
+  background: var(--surface);
+  color: var(--ink);
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  border-bottom: 1px solid var(--surface-line);
+}
+
+.ad-card__close {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 150ms ease, transform 150ms ease;
+}
+
+.ad-card__close:hover {
+  color: var(--danger-bright);
+  transform: rotate(90deg);
+}
+
+.ad-card__body {
+  padding: 22px;
+}
+
+.field {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+.field input {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 11px 14px;
+  border: 1.5px solid var(--surface-line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-deep);
+  color: var(--ink);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--purple-solid);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(107, 63, 199, 0.3);
+}
+
+.field--error input {
+  border-color: var(--danger-bright);
+}
+
+.field--error input:focus {
+  box-shadow: 0 0 0 3px rgba(225, 90, 111, 0.25);
+}
+
+.field__error {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--danger-bright);
+  min-height: 1em;
+}
+
+.ad-card__footer {
+  padding: 14px 22px 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ---------- Auth page (login / register) ---------- */
+.auth-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-shell {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-shell .banner {
+  margin-bottom: 20px;
+}
+
+.auth-card {
+  width: 100%;
+  animation: group-in 360ms var(--ease-out) both;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 20px;
+  background: var(--surface-deep);
+  border-radius: var(--radius-pill);
+}
+
+.auth-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 10px 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.auth-tab:hover {
+  background: rgba(237, 233, 244, 0.08);
+}
+
+.auth-tab.is-active {
+  background: var(--purple-solid);
+  color: var(--ink-on-accent);
+}
+
+#loginForm,
+#registerForm {
+  animation: group-in 260ms var(--ease-out) both;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* ---------- Delete confirm dialog ---------- */
+.confirm-card {
+  max-width: 380px;
+  text-align: left;
+}
+
+.confirm-card__body {
+  padding: 22px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.confirm-card__body strong {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+/* ---------- Toast / inline banner (intentionally light — a toast should
+   pop against a dark page, not blend into another dark surface) ---------- */
+.banner {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  animation: banner-in 220ms var(--ease-out) both;
+}
+
+@keyframes banner-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.banner--error {
+  background: #f8e1e5;
+  color: #7a1f30;
+}
+
+.banner--success {
+  background: #e2f0e6;
+  color: var(--success-deep);
+}
+
+.banner[hidden] {
+  display: none;
+}
+
+/* ---------- Utility ---------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Motion preference ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .listing-group,
+  .banner,
+  .auth-card,
+  #loginForm,
+  #registerForm {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  /* The rail's protruded position is a state indicator, not decoration —
+     keep the static transform, just drop the bounce that gets there. */
+  .alpha-rail button.is-active {
+    animation: none;
+  }
+  .skeleton-line {
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+    background: var(--surface-line);
+  }
+  .ad-card {
+    transition: opacity 150ms linear;
+    transform: none;
+  }
+  .modal-overlay {
+    transition: opacity 150ms linear, visibility 0s linear 150ms;
+  }
+  .modal-overlay.is-open {
+    transition: opacity 150ms linear;
+  }
+  .btn,
+  .alpha-rail button,
+  .ad-card__close {
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+  .btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .alpha-rail button:hover:not(.is-active) {
+    transform: none;
+  }
+  .btn:active,
+  .alpha-rail button:active:not(.is-active) {
+    transform: none;
+  }
+  .listing {
+    transition: background-color 150ms ease, opacity 150ms linear;
+  }
+  .listing.is-removing {
+    transform: none;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand__mark {
+    font-size: 1.3rem;
+  }
+  .directory-header__inner {
+    align-items: flex-start;
+  }
+  .header-actions {
+    padding-top: 4px;
+  }
+  .panel-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-box {
+    flex: none;
+  }
+  .directory-shell {
+    grid-template-columns: 1fr 30px;
+  }
+  .directory-shell::after {
+    right: 30px;
+  }
+  .listing {
+    grid-template-columns: 1fr;
+  }
+  .listing__phone {
+    justify-self: start;
+  }
+}
