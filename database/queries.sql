@@ -47,11 +47,12 @@ END //
 -- Searches a contact by user ID and first name or last name
 CREATE PROCEDURE search_contact(
     IN U_ID INT,
-    IN F_Name VARCHAR(50)
+    IN F_Name VARCHAR(50),
+    IN L_Name VARCHAR(50)
 )
 BEGIN
     SELECT * FROM contacts WHERE UserID = U_ID AND 
-    (FirstName LIKE CONCAT('%', F_Name, '%') OR LastName LIKE CONCAT('%', F_Name, '%'));  
+    (FirstName LIKE CONCAT(F_Name, '%') OR (L_Name IS NOT NULL AND LastName LIKE CONCAT(L_Name, '%')));  
 END //
 
 -- Retrieve all contacts belonging to a specific user
