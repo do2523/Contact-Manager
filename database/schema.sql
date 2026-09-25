@@ -1,1 +1,24 @@
-eed
+USE contact_manager;
+
+CREATE TABLE users (
+    ID INT NOT NULL AUTO_INCREMENT,
+    Username VARCHAR(50) NOT NULL UNIQUE,
+    Password VARCHAR(255) NOT NULL,
+    PRIMARY KEY (ID)
+) ENGINE = InnoDB;
+
+CREATE TABLE contacts (
+    ContactID INT NOT NULL AUTO_INCREMENT,
+    UserID INT NOT NULL,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    Email VARCHAR(100) NOT NULL,
+    Phone VARCHAR(20) NOT NULL,
+    DateCreated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (ContactID),
+    FOREIGN KEY (UserID) REFERENCES users(ID) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+CREATE INDEX Owner_ID ON contacts (UserID);
+CREATE INDEX F_name ON contacts (FirstName);
+CREATE INDEX L_name ON contacts (LastName);
