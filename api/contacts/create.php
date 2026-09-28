@@ -1,79 +1,79 @@
 <?php
 
-header("Content-Type: application/json");
+    header("Content-Type: application/json");
 
-//require_once "../db.php";
-$conn = new mysqli("localhost", "TheBeast", "WELOVECOP4331", "COP4331");
-if($conn->connect_error){
-    returnWithError($conn->connect_error);
-}
+    $conn = require_once "../config/database.php";
 
-// Read JSON body
-$data = json_decode(file_get_contents("php://input"), true);
+    if($conn->connect_error){
+        returnWithError($conn->connect_error, 500);
+    }
 
-// Get fields from request
-$UserID = $data["UserID"] ?? null;
-$firstName = $data["FirstName"] ?? null;
-$LastName = $data["LastName"] ?? null;
-$Phone = $data["Phone"] ?? null;
-$Email = $data["Email"] ?? null;
+    // Read JSON body
+    $inData = json_decode(file_get_contents("php://input"), true);
 
-// Validate required fields
-if (empty($UserID) || empty($firstName) || empty($LastName)) {
-    returnWithError("UserID, FirstName, and LastName are required");
-}
+    // Get fields from request
+    $UserID = $inData["UserID"] ?? null;
+    $FirstName = $inData["FirstName"] ?? null;
+    $LastName = $inData["LastName"] ?? null;
+    $Phone = $inData["Phone"] ?? null;
+    $Email = $inData["Email"] ?? null;
 
-// Prepare INSERT query
-$stmt = $conn->prepare(
-    // INSERT contact into contacts table
-    "INSERT INTO contacts (UserID, FirstName, LastName, Email, Phone, date_created)
-    VALUES(?, ?,?, ?, ?, NOW())"
-);
+    // Validate required fields
+    if (empty($UserID) || empty($FirstName) || empty($LastName)) {
+        returnWithError("UserID, FirstName, and LastName are required", 400);
+    }
 
-if(!$stmt)(
-    returnWithError("Prepare failed: " . $conn->error, 500);
-)
+    // Prepare INSERT query
+    $stmt = $conn->prepare(
+        // INSERT contact into contacts table
+        "INSERT INTO contacts (UserID, FirstName, LastName, Email, Phone, DateCreated)
+        VALUES(?, ?,?, ?, ?, NOW())"
+    );
 
-// Bind parameters "issss = one int UserID and then four strings
-$stmt->bind_param("issss", $UserID, $firstName, $LastName, $Email, $Phone);
+    if(!$stmt){
+        returnWithError("Prepare failed: " . $conn->error, 500);
+    }
 
-
-
-// Execute statement
-if(!stmt->execute()){
-    returnWithError("Insert failed: " . $stmt->error, 500)
-}
-
-$ContactID = $stmt->insert_id;
+    // Bind parameters "issss = one int UserID and then four strings
+    $stmt->bind_param("issss", $UserID, $FirstName, $LastName, $Phone, $Email);
 
 
-// Close statement/connection
-$stmt->close();
-$conn->close();
 
-// Return success/error JSON
-returnWithSuccess([
-    "ContactID" => $ContactID,
-    "UserID" => (int)$UserID,
-    "FirstName" => $firstName,
-    "LastName" => $LastName,
-    "Phone"     => $Phone
-    "Email"     => $Email
-]);
+    // Execute statement
+    if(!$stmt->execute()){
+        returnWithError("Insert failed: " . $stmt->error, 500);
+    }
 
-// helper function
+    $ContactID = $conn->insert_id;
 
-function returnWithError($err, $statusCode = 400)
-{
-    http_response_code($statusCode);
-    echo json_encode(["error => $err"]);
-    exit;
-}
 
-function returnWithSuccess($contactsArray)
-{
-    echo json_encode($data);
-    exit;
-}
+    // Close statement/connection
+    $stmt->close();
+    $conn->close();
 
+    // Return success/error JSON
+    returnWithSuccess([
+        "ContactID" => $ContactID,
+        "UserID" => (int)$UserID,
+        "FirstName" => $FirstName,
+        "LastName" => $LastName,
+        "Phone"     => $Phone,
+        "Email"     => $Email
+    ]);
+
+    // helper function
+
+    function returnWithError($err, $statusCode = 400)
+    {
+        http_response_code($statusCode);
+        echo json_encode(["contacts" => [], "error" => $err]);
+        exit;
+    }
+
+    function returnWithSuccess($contactsArray)
+    {
+        echo json_encode(["contacts" => [$contactsArray], "error" => ""]);
+        exit;
+    }
+    
 ?>
