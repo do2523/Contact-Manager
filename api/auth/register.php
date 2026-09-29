@@ -2,7 +2,7 @@
 
 header("Content-Type: application/json");
 
-$mysqli = require_once __DIR__ . "/../../config/database.php";
+$mysqli = require_once "../config/database.php";
 
 // Only allow POST requests
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
