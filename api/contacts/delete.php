@@ -1,5 +1,4 @@
 <?php
-
 header("Content-Type: application/json");
 
 //connect to database
@@ -21,8 +20,7 @@ if (empty($ContactID) || empty($UserID)) {
     // Return 400 error
     returnWithError("ContactID and UserID are required", 400);
 }
-
-    
+   
 // Prepare DELETE query
 $stmt = $conn->prepare(
     "DELETE FROM contacts
@@ -67,4 +65,3 @@ function returnWithSuccess($contact)
     exit;
 }
 ?>
-//end of file

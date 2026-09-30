@@ -115,4 +115,3 @@ function returnWithSuccess($contact)
 }
 
 ?>
-//end of file

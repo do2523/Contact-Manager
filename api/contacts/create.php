@@ -39,7 +39,7 @@
 
 
 
-    // Execute statement
+    // Execute statements
     if(!$stmt->execute()){
         returnWithError("Insert failed: " . $stmt->error, 500);
     }
@@ -77,4 +77,3 @@
     }
     
 ?>
-// end of file
