@@ -1,77 +1,97 @@
 <?php
 
-    header("Content-Type: application/json");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-    $mysqli = require_once "../config/database.php";
+header("Content-Type: application/json");
 
-    $data = json_decode(file_get_contents("php://input"), true);
+// Connect to database
+$conn = require_once "../config/database.php";
 
-    $UserID = $data["UserID"] ?? null;
+if ($conn->connect_error)
+{
+    returnWithError($conn->connect_error, 500);
+}
 
-    // Validate UserID
-    if ($empty($UserID)) {
-        returnWithError("UserID is required");
-        exit;
-    }
+// Read JSON body
+$data = json_decode(file_get_contents("php://input"), true);
 
-    // Prepare SELECT query
-    // IMPORTANT: only return contacts belonging to this user
-    $stmt = $conn->prepare(
-        "SELECT id, FirstName, LastName, Email, Phone, date_created
-        FROM contacts
-        WHERE UserID = ?"
+// Get UserID
+$UserID = isset($data["UserID"]) ? $data["UserID"] : null;
+
+// Validate UserID
+if (empty($UserID))
+{
+    returnWithError("UserID is required", 400);
+}
+
+// Prepare SELECT query
+$stmt = $conn->prepare(
+    "SELECT ContactID, UserID, FirstName, LastName, Email, Phone, DateCreated
+     FROM contacts
+     WHERE UserID = ?"
+);
+
+if (!$stmt)
+{
+    returnWithError("Prepare failed: " . $conn->error, 500);
+}
+
+// Bind UserID
+$stmt->bind_param("i", $UserID);
+
+// Execute query
+if (!$stmt->execute())
+{
+    returnWithError("Execute failed: " . $stmt->error, 500);
+}
+
+// Get result
+$result = $stmt->get_result();
+
+$contacts = array();
+
+// Loop through results
+while ($row = $result->fetch_assoc())
+{
+    $contacts[] = array(
+        "ContactID" => (int)$row["ContactID"],
+        "UserID" => (int)$row["UserID"],
+        "FirstName" => $row["FirstName"],
+        "LastName" => $row["LastName"],
+        "Phone" => $row["Phone"],
+        "Email" => $row["Email"],
+        "DateCreated" => $row["DateCreated"]
     );
+}
 
-    if(!stmt){
-        returnWithError("Prepare failed: ", $conn->error, 500);
-    }
+// Close connection
+$stmt->close();
+$conn->close();
 
-    // Bind UserID
-    $stmt->bind_param("i", $UserID);
+// Return results
+returnWithSuccess($contacts);
 
-    // Execute query
-    $stmt->execute();
+function returnWithError($err, $statusCode = 400)
+{
+    http_response_code($statusCode);
 
-    // Get result
-    $result = $stmt->get_results();
+    echo json_encode(array(
+        "contacts" => array(),
+        "error" => $err
+    ));
 
-    $contacts = [];
+    exit;
+}
 
-    // Loop through result rows
-    while ($row = $result->fetch_assocs()) {
-        // Add each contact to $contacts
-        $contacts[] = [
-            "ContactID"   => (int)$row["id"],
-            "UserID"      => (int)$UserID,
-            "FirstName"   => $row["FirstName"],
-            "LastName"    => $row["LastName"],
-            "Phone"        => $row["Phone"],
-            "Email"        => $row["Email"],
-            "date_created" => $row["date_created"]
-        ];
-    }
+function returnWithSuccess($contacts)
+{
+    echo json_encode(array(
+        "contacts" => $contacts,
+        "error" => ""
+    ));
 
-    $stmt->close();
-    $conn->close();
-
-    // Return contacts as JSON
-    returnWithSuccess(["results" => $contacts]);
-
-
-    // helper function
-
-    function returnWithError($err, $statusCode = 400)
-    {
-        http_response_code($statusCode);
-        echo json_encode(["error => $err"]);
-        exit;
-    }
-
-    function returnWithSuccess($data)
-    {
-        $data[error] = "";
-        echo json_encode($data);
-        exit;
-    }
+    exit;
+}
 
 ?>

@@ -93,4 +93,17 @@ function returnWithError($err, $statusCode = 400)
     exit;
 }
 
+// Helper function for success response
+function returnWithSuccess($contacts)
+{
+    echo json_encode([
+        "contacts" => $contacts,
+        "error" => ""
+    ]);
+
+    exit;
+}
+
 ?>
+
+// end of file
