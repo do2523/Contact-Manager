@@ -1,7 +1,19 @@
 <?php
 
-header("Content-Type: application/json");
 
+header("Content-Type: application/json");
+session_start();
+
+
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    returnWithError("Method not allowed", 405);
+}
+
+if (!isset($_SESSION["user_id"])) {
+        returnWithError("Not logged in", 401);
+    }
+
+$UserID = $_SESSION["user_id"];
 // Connect to database
 $conn = require_once "../config/database.php";
 
@@ -16,24 +28,27 @@ $data = json_decode(file_get_contents("php://input"), true);
 // Check for valid JSON
 if ($data === null)
 {
-    returnWithError("Invalid JSON request", 400);
+    returnWithError("Invalid POST request", 400);
 }
 
 // Get fields from request
 $ContactID = $data["ContactID"] ?? null;
-$UserID = $data["UserID"] ?? null;
 $FirstName = $data["FirstName"] ?? null;
 $LastName = $data["LastName"] ?? null;
 $Phone = $data["Phone"] ?? null;
 $Email = $data["Email"] ?? null;
 
 // Validate required fields
-if (empty($ContactID) || empty($UserID) || empty($FirstName) || empty($LastName))
+if (empty($ContactID) || empty($FirstName) || empty($LastName))
 {
     returnWithError(
-        "ContactID, UserID, FirstName, and LastName are required",
+        "ContactID, FirstName, and LastName are required",
         400
     );
+}
+
+if (empty($Email) && empty($Phone)) {
+    returnWithError("Email or Phone is required", 400);
 }
 
 // Prepare UPDATE query
@@ -71,10 +86,10 @@ if (!$stmt->execute())
 }
 
 // Check if contact was found
-if ($stmt->affected_rows === 0)
-{
-    returnWithError("No matching contact found to update", 404);
-}
+// if ($stmt->affected_rows === 0)
+// {
+//     returnWithError("No matching contact found to update", 404);
+// }
 
 // Close statement and connection
 $stmt->close();
@@ -115,3 +130,4 @@ function returnWithSuccess($contact)
 }
 
 ?>
+

@@ -2,6 +2,10 @@
     header("Content-Type: application/json");
 // Check their logged in
     session_start();
+
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    returnWithError("Method not allowed", 405);
+}
     if (!isset($_SESSION["user_id"])) {
         returnWithError("Not logged in", 401);
     }
@@ -14,9 +18,6 @@
         returnWithError($conn->connect_error, 500);
     }
 
-    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    returnWithError("Method not allowed", 405);
-}
     // Read JSON body
     $inData = json_decode(file_get_contents("php://input"), true);
 

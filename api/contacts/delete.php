@@ -1,5 +1,16 @@
 <?php
 header("Content-Type: application/json");
+session_start();
+
+if ($_SERVER["REQUEST_METHOD"] !== "DELETE") {
+    returnWithError("Method not allowed", 405);
+}
+
+if (!isset($_SESSION["user_id"])) {
+    returnWithError("Not logged in", 401);
+}
+
+$UserID = $_SESSION["user_id"];
 
 //connect to database
 $conn = require_once "../config/database.php";
@@ -13,12 +24,10 @@ $inData = json_decode(file_get_contents("php://input"), true);
 
 // get fields from request
 $ContactID = $inData["ContactID"] ?? null;
-$UserID = $inData["UserID"] ?? null;
 
 // Validate request
-if (empty($ContactID) || empty($UserID)) {
-    // Return 400 error
-    returnWithError("ContactID and UserID are required", 400);
+if (empty($ContactID)) {
+    returnWithError("ContactID is required", 400);
 }
    
 // Prepare DELETE query

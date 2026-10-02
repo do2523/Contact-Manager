@@ -2,7 +2,18 @@
 
 
 header("Content-Type: application/json");
+session_start();
 
+
+if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+    returnWithError("Method not allowed", 405);
+}
+
+if (!isset($_SESSION["user_id"])) {
+        returnWithError("Not logged in", 401);
+    }
+
+$UserID = $_SESSION["user_id"];
 
 // Connect to database
 $conn = require_once "../config/database.php";
@@ -14,17 +25,16 @@ if ($conn->connect_error)
 }
 
 // Get URL parameters
-$UserID = $_GET["UserID"] ?? null;
 $search = $_GET["search"] ?? "";
 
-// Validate UserID
-if (empty($UserID))
-{
-    returnWithError("UserID is required", 400);
-}
-
 // Search anywhere in first or last name
-$searchTerm = "%" . $search . "%";
+$parts = preg_split('/\s+/', trim($search));
+
+$first = $parts[0] ?? "";
+$second = $parts[1] ?? "";
+
+$firstTerm = "%" . $first . "%";
+$secondTerm = "%" . $second . "%";
 
 $stmt = $conn->prepare(
     "SELECT ContactID,
@@ -36,22 +46,21 @@ $stmt = $conn->prepare(
             DateCreated
      FROM contacts
      WHERE UserID = ?
-     AND (
-         FirstName LIKE ?
-         OR LastName LIKE ?
-     )"
+     AND FirstName LIKE ?
+     AND LastName LIKE ?"
 );
 
 if (!$stmt)
 {
     returnWithError("Prepare failed: " . $conn->error, 500);
+    exit;
 }
 
 $stmt->bind_param(
     "iss",
     $UserID,
-    $searchTerm,
-    $searchTerm
+    $firstTerm,
+    $secondTerm
 );
 
 
@@ -75,11 +84,17 @@ if (count($contacts) === 0)
 {
     returnWithError("No Records Found", 404);
 }
+function returnWithSuccess($contacts)
+{
+    echo json_encode([
+        "contacts" => $contacts,
+        "error" => ""
+    ]);
 
-echo json_encode([
-    "contacts" => $contacts,
-    "error" => ""
-]);
+    exit;
+}
+
+returnWithSuccess($contacts);
 
 function returnWithError($err, $statusCode = 400)
 {
@@ -93,15 +108,5 @@ function returnWithError($err, $statusCode = 400)
     exit;
 }
 
-// Helper function for success response
-function returnWithSuccess($contacts)
-{
-    echo json_encode([
-        "contacts" => $contacts,
-        "error" => ""
-    ]);
-
-    exit;
-}
 
 ?>
