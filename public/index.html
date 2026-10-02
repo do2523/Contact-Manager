@@ -91,6 +91,18 @@
             </form>
 
             <form id="registerForm" novalidate hidden>
+              <div class="field" id="field-registerUsername">
+                <label for="registerUsername">Username</label>
+                <input
+                  type="text"
+                  id="registerUsername"
+                  name="username"
+                  required
+                  autocomplete="username"
+                />
+                <span class="field__error"></span>
+              </div>
+
               <div class="field" id="field-registerFirstName">
                 <label for="registerFirstName">First Name</label>
                 <input
