@@ -1,9 +1,5 @@
 /*
- * Contacts page controller.
- *
- * Assumed API contract (backend not built yet — confirm with the API dev
- * before this ships; adjust the fetch calls in ContactsApi below if the
- * real endpoints differ):
+
  *   GET    /api/contacts/get.php            -> { contacts: [Contact] }
  *   GET    /api/contacts/search.php?q=term  -> { contacts: [Contact] }
  *   POST   /api/contacts/create.php         body Contact (no id)   -> { contact: Contact }
@@ -180,7 +176,7 @@
     const visible = state.activeLetter
       ? state.contacts.filter(
           (c) =>
-            (c.lastName || "").charAt(0).toUpperCase() === state.activeLetter,
+            (c.firstName || "").charAt(0).toUpperCase() === state.activeLetter,
         )
       : state.contacts;
     renderListings(visible, opts);
@@ -189,7 +185,7 @@
 
   function renderAlphaIndex(sourceList) {
     const lettersWithContacts = new Set(
-      sourceList.map((c) => (c.lastName || "?").charAt(0).toUpperCase()),
+      sourceList.map((c) => (c.firstName || "?").charAt(0).toUpperCase()),
     );
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     els.alphaIndex.innerHTML = "";
@@ -236,14 +232,14 @@
     }
 
     const sorted = [...list].sort((a, b) => {
-      const an = `${a.lastName || ""} ${a.firstName || ""}`.toLowerCase();
-      const bn = `${b.lastName || ""} ${b.firstName || ""}`.toLowerCase();
+      const an = `${a.firstName || ""} ${a.lastName || ""}`.toLowerCase();
+      const bn = `${b.firstName || ""} ${b.lastName || ""}`.toLowerCase();
       return an.localeCompare(bn);
     });
 
     const groups = new Map();
     sorted.forEach((contact) => {
-      const letter = (contact.lastName || "?").charAt(0).toUpperCase();
+      const letter = (contact.firstName || "?").charAt(0).toUpperCase();
       if (!groups.has(letter)) groups.set(letter, []);
       groups.get(letter).push(contact);
     });
@@ -288,7 +284,20 @@
         </span>
       </article>`;
   }
+  async function deleteContact(id) {
+    try {
+      await ContactsApi.remove(id);
 
+      state.contacts = state.contacts.filter(
+        (contact) => String(contact.id) !== String(id),
+      );
+
+      showBanner("Contact deleted.", "success");
+      renderAll({ skipEntrance: true });
+    } catch (err) {
+      showBanner("Could not delete this contact. " + err.message, "error");
+    }
+  }
   function onListingsClick(e) {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
@@ -298,7 +307,15 @@
     if (!contact) return;
 
     if (btn.dataset.action === "edit") openContactModal(contact);
-    if (btn.dataset.action === "delete") openDeleteModal(contact);
+    if (btn.dataset.action === "delete") {
+      const accepted = confirm(
+        `Delete ${contact.firstName} ${contact.lastName}?`,
+      );
+
+      if (accepted) {
+        deleteContact(contact.id);
+      }
+    }
   }
 
   // ---------------- Add / Edit modal ----------------
