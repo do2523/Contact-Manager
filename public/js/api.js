@@ -91,7 +91,14 @@
     register: (payload) =>
       request("auth/register.php", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          Username: contact.username,
+          FirstName: contact.firstName,
+          LastName: contact.lastName,
+          Email: contact.email,
+          Password: contact.password,
+          ConfirmPassword: contact.confirmPassword,
+        }),
       }),
     logout: () => request("auth/logout.php", { method: "POST" }),
   };
