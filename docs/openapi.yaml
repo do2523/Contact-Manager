@@ -4,6 +4,9 @@ info:
   title: Contact Manager API
   version: 1.0.0
 
+servers:
+  - url: http://167.99.13.14/Contact-Manager
+
 paths:
   /api/auth/register.php:
     post:
@@ -25,23 +28,14 @@ paths:
                 password:
                   type: string
                   format: password
-                  example: "pass123"
+                  example: "Password123"
                 password_confirmation:
                   type: string
                   format: password
-                  example: "pass123"
+                  example: "Password123"
       responses:
-        "201":
+        "200":
           description: User created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error: 
-                    type: string 
         "400":
           description: Registration error
         "405":
@@ -49,11 +43,12 @@ paths:
         "409":
           description: Username taken
         "500":
-          description: SQL error
+          description: Database error
 
   /api/auth/login.php:
     post:
       summary: Login user
+      security: []
       requestBody:
         required: true
         content:
@@ -66,10 +61,11 @@ paths:
               properties:
                 username:
                   type: string
-                  example: "KevinG"
+                  example: "TestUser42"
                 password:
                   type: string
-                  example: "pass123"
+                  format: password
+                  example: "Password123"
       responses:
         "200":
           description: Login successful
@@ -82,7 +78,7 @@ paths:
                     type: integer
                   username:
                     type: string
-                  error: 
+                  error:
                     type: string
         "400":
           description: Username and password are required
@@ -94,22 +90,17 @@ paths:
   /api/auth/logout.php:
     post:
       summary: Logout user
+      security:
+        - sessionAuth: []
       responses:
         "200":
           description: Logout successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: string
 
   /api/auth/session.php:
     get:
       summary: Check current user session
+      security:
+        - sessionAuth: []
       responses:
         "200":
           description: User is logged in
@@ -124,13 +115,211 @@ paths:
                     type: string
                   error:
                     type: string
-
         "401":
           description: User is not logged in
+
+  /api/contacts/get.php:
+    get:
+      summary: Get all contacts for logged-in user
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Contacts retrieved successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  contacts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Contact"
                   error:
                     type: string
+        "401":
+          description: Not logged in
+        "405":
+          description: Method not allowed
+        "500":
+          description: Database error
+
+  /api/contacts/create.php:
+    post:
+      summary: Create a contact
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - FirstName
+                - LastName
+              properties:
+                FirstName:
+                  type: string
+                  example: "Maria"
+                LastName:
+                  type: string
+                  example: "Lopez"
+                Email:
+                  type: string
+                  example: "maria@example.com"
+                Phone:
+                  type: string
+                  example: "4075551234"
+              description: Email or Phone must be provided.
+      responses:
+        "200":
+          description: Contact created successfully
+        "400":
+          description: Invalid contact data
+        "401":
+          description: Not logged in
+        "405":
+          description: Method not allowed
+        "409":
+          description: Email or phone already exists
+        "500":
+          description: Database error
+
+  /api/contacts/update.php:
+    put:
+      summary: Update a contact
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ContactID
+                - FirstName
+                - LastName
+              properties:
+                ContactID:
+                  type: integer
+                  example: 12
+                FirstName:
+                  type: string
+                  example: "Maria"
+                LastName:
+                  type: string
+                  example: "Lopez"
+                Email:
+                  type: string
+                  example: "maria@example.com"
+                Phone:
+                  type: string
+                  example: "4075551234"
+              description: Email or Phone must be provided.
+      responses:
+        "200":
+          description: Contact updated successfully
+        "400":
+          description: Invalid contact data
+        "401":
+          description: Not logged in
+        "405":
+          description: Method not allowed
+        "500":
+          description: Database error
+
+  /api/contacts/delete.php:
+    delete:
+      summary: Delete a contact
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ContactID
+              properties:
+                ContactID:
+                  type: integer
+                  example: 12
+      responses:
+        "200":
+          description: Contact deleted successfully
+        "400":
+          description: ContactID is required
+        "401":
+          description: Not logged in
+        "404":
+          description: Contact not found
+        "405":
+          description: Method not allowed
+        "500":
+          description: Database error
+
+  /api/contacts/search.php:
+    get:
+      summary: Search contacts by first and last name
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: query
+          name: search
+          required: false
+          schema:
+            type: string
+          example: "Maria L"
+      responses:
+        "200":
+          description: Matching contacts retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contacts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Contact"
+                  error:
+                    type: string
+        "401":
+          description: Not logged in
+        "404":
+          description: No records found
+        "405":
+          description: Method not allowed
+        "500":
+          description: Database error
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+
+  schemas:
+    Contact:
+      type: object
+      properties:
+        ContactID:
+          type: integer
+        UserID:
+          type: integer
+        FirstName:
+          type: string
+        LastName:
+          type: string
+        Email:
+          type: string
+          nullable: true
+        Phone:
+          type: string
+          nullable: true
+        DateCreated:
+          type: string
