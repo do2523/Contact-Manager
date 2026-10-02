@@ -1,6 +1,12 @@
 <?php
-
     header("Content-Type: application/json");
+// Check their logged in
+    session_start();
+    if (!isset($_SESSION["user_id"])) {
+        returnWithError("Not logged in", 401);
+    }
+
+    $UserID = $_SESSION["user_id"];
 
     $conn = require_once "../config/database.php";
 
@@ -8,20 +14,78 @@
         returnWithError($conn->connect_error, 500);
     }
 
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    returnWithError("Method not allowed", 405);
+}
     // Read JSON body
     $inData = json_decode(file_get_contents("php://input"), true);
 
     // Get fields from request
-    $UserID = $inData["UserID"] ?? null;
     $FirstName = $inData["FirstName"] ?? null;
     $LastName = $inData["LastName"] ?? null;
     $Phone = $inData["Phone"] ?? null;
     $Email = $inData["Email"] ?? null;
 
     // Validate required fields
-    if (empty($UserID) || empty($FirstName) || empty($LastName)) {
-        returnWithError("UserID, FirstName, and LastName are required", 400);
+    if (empty($FirstName) || empty($LastName)) {
+    returnWithError("FirstName and LastName are required", 400);
+}
+    // Check for duplicates and that they added either phone or email
+    if (!empty($Email) && !empty($Phone)) {
+    $stmt = $conn->prepare(
+        "SELECT ContactID, Email, Phone
+         FROM contacts
+         WHERE UserID = ?
+         AND (Email = ? OR Phone = ?)
+         LIMIT 1"
+    );
+
+    $stmt->bind_param("iss", $UserID, $Email, $Phone);
+
+} 
+elseif (empty($Email) && empty($Phone)) {
+    returnWithError("Email or Phone is required", 400);
+}
+
+elseif (!empty($Email)) {
+    $stmt = $conn->prepare(
+        "SELECT ContactID, Email, Phone
+         FROM contacts
+         WHERE UserID = ?
+         AND Email = ?
+         LIMIT 1"
+    );
+
+    $stmt->bind_param("is", $UserID, $Email);
+
+} else {
+    $stmt = $conn->prepare(
+        "SELECT ContactID, Email, Phone
+         FROM contacts
+         WHERE UserID = ?
+         AND Phone = ?
+         LIMIT 1"
+    );
+
+    $stmt->bind_param("is", $UserID, $Phone);
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
+$duplicate = $result->fetch_assoc();
+$stmt->close();
+
+if ($duplicate) {
+    if (!empty($Email) && $duplicate["Email"] === $Email) {
+        returnWithError("A contact with this email already exists", 409);
     }
+
+    if (!empty($Phone) && $duplicate["Phone"] === $Phone) {
+        returnWithError("A contact with this phone number already exists", 409);
+    }
+
+    returnWithError("Contact already exists", 409);
+}
 
     // Prepare INSERT query
     $stmt = $conn->prepare(
@@ -35,7 +99,7 @@
     }
 
     // Bind parameters "issss = one int UserID and then four strings
-    $stmt->bind_param("issss", $UserID, $FirstName, $LastName, $Phone, $Email);
+    $stmt->bind_param("issss", $UserID, $FirstName, $LastName, $Email, $Phone);
 
 
 
