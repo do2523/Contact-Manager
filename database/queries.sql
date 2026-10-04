@@ -79,6 +79,7 @@ BEGIN
     WHERE ContactID = Con_ID AND UserID = U_ID;
 END //
 
+-- UNUSED as we Did a HASHcheck instead
 -- Searches for and matches username and password for authenticating returns 1 if authenticated 0 if not
 CREATE PROCEDURE auth_user(
     IN U_Nm VARCHAR(50),

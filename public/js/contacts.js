@@ -1,9 +1,5 @@
 /*
- * Contacts page controller.
- *
- * Assumed API contract (backend not built yet — confirm with the API dev
- * before this ships; adjust the fetch calls in ContactsApi below if the
- * real endpoints differ):
+
  *   GET    /api/contacts/get.php            -> { contacts: [Contact] }
  *   GET    /api/contacts/search.php?q=term  -> { contacts: [Contact] }
  *   POST   /api/contacts/create.php         body Contact (no id)   -> { contact: Contact }
@@ -22,6 +18,7 @@
     activeLetter: null,
     editingId: null,
     deletingId: null,
+    searchRequestId: 0,
   };
 
   const els = {};
@@ -89,7 +86,7 @@
   }
 
   function bindEvents() {
-    els.searchForm.addEventListener("submit", (e) => e.preventDefault());
+    els.searchForm.addEventListener("submit", onSearchSubmit);
     els.searchInput.addEventListener("input", debounce(onSearchInput, 250));
 
     els.addContactBtn.addEventListener("click", () => openContactModal(null));
@@ -137,16 +134,24 @@
     runSearch();
   }
 
+  function onSearchSubmit(e) {
+    e.preventDefault();
+    onSearchInput();
+  }
+
   async function runSearch() {
+    const requestId = ++state.searchRequestId;
     if (!state.searchTerm) {
       renderAll();
       return;
     }
     try {
       const results = await ContactsApi.search(state.searchTerm);
+      if (requestId !== state.searchRequestId) return;
       renderListings(results);
       renderAlphaIndex(results);
     } catch (err) {
+      if (requestId !== state.searchRequestId) return;
       showBanner("Search failed. " + err.message, "error");
     }
   }
@@ -170,7 +175,8 @@
   function renderAll(opts) {
     const visible = state.activeLetter
       ? state.contacts.filter(
-          (c) => (c.lastName || "").charAt(0).toUpperCase() === state.activeLetter
+          (c) =>
+            (c.firstName || "").charAt(0).toUpperCase() === state.activeLetter,
         )
       : state.contacts;
     renderListings(visible, opts);
@@ -179,7 +185,7 @@
 
   function renderAlphaIndex(sourceList) {
     const lettersWithContacts = new Set(
-      sourceList.map((c) => (c.lastName || "?").charAt(0).toUpperCase())
+      sourceList.map((c) => (c.firstName || "?").charAt(0).toUpperCase()),
     );
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     els.alphaIndex.innerHTML = "";
@@ -226,14 +232,14 @@
     }
 
     const sorted = [...list].sort((a, b) => {
-      const an = `${a.lastName || ""} ${a.firstName || ""}`.toLowerCase();
-      const bn = `${b.lastName || ""} ${b.firstName || ""}`.toLowerCase();
+      const an = `${a.firstName || ""} ${a.lastName || ""}`.toLowerCase();
+      const bn = `${b.firstName || ""} ${b.lastName || ""}`.toLowerCase();
       return an.localeCompare(bn);
     });
 
     const groups = new Map();
     sorted.forEach((contact) => {
-      const letter = (contact.lastName || "?").charAt(0).toUpperCase();
+      const letter = (contact.firstName || "?").charAt(0).toUpperCase();
       if (!groups.has(letter)) groups.set(letter, []);
       groups.get(letter).push(contact);
     });
@@ -247,7 +253,7 @@
           <div class="listing-grid">
             ${contacts.map(renderListingRow).join("")}
           </div>
-        </section>`
+        </section>`,
       )
       .join("");
 
@@ -255,7 +261,8 @@
   }
 
   function renderListingRow(contact) {
-    const fullName = `${contact.firstName || ""} ${contact.lastName || ""}`.trim();
+    const fullName =
+      `${contact.firstName || ""} ${contact.lastName || ""}`.trim();
     const created = formatDate(contact.createdAt);
     return `
       <article class="listing" data-id="${escapeHtml(contact.id)}">
@@ -277,7 +284,20 @@
         </span>
       </article>`;
   }
+  async function deleteContact(id) {
+    try {
+      await ContactsApi.remove(id);
 
+      state.contacts = state.contacts.filter(
+        (contact) => String(contact.id) !== String(id),
+      );
+
+      showBanner("Contact deleted.", "success");
+      renderAll({ skipEntrance: true });
+    } catch (err) {
+      showBanner("Could not delete this contact. " + err.message, "error");
+    }
+  }
   function onListingsClick(e) {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
@@ -287,14 +307,24 @@
     if (!contact) return;
 
     if (btn.dataset.action === "edit") openContactModal(contact);
-    if (btn.dataset.action === "delete") openDeleteModal(contact);
+    if (btn.dataset.action === "delete") {
+      const accepted = confirm(
+        `Delete ${contact.firstName} ${contact.lastName}?`,
+      );
+
+      if (accepted) {
+        deleteContact(contact.id);
+      }
+    }
   }
 
   // ---------------- Add / Edit modal ----------------
 
   function openContactModal(contact) {
     state.editingId = contact ? contact.id : null;
-    els.contactModalTitle.textContent = contact ? "Edit Contact" : "New Contact";
+    els.contactModalTitle.textContent = contact
+      ? "Edit Contact"
+      : "New Contact";
     els.contactId.value = contact ? contact.id : "";
     els.firstName.value = contact ? contact.firstName || "" : "";
     els.lastName.value = contact ? contact.lastName || "" : "";
@@ -385,7 +415,9 @@
   }
 
   function replaceContact(updated) {
-    const idx = state.contacts.findIndex((c) => String(c.id) === String(updated.id));
+    const idx = state.contacts.findIndex(
+      (c) => String(c.id) === String(updated.id),
+    );
     if (idx !== -1) state.contacts[idx] = updated;
   }
 
@@ -393,7 +425,8 @@
 
   function openDeleteModal(contact) {
     state.deletingId = contact.id;
-    els.deleteContactName.textContent = `${contact.firstName || ""} ${contact.lastName || ""}`.trim();
+    els.deleteContactName.textContent =
+      `${contact.firstName || ""} ${contact.lastName || ""}`.trim();
     showModal(els.deleteModal);
   }
 
@@ -422,16 +455,20 @@
   // the list, instead of just vanishing on the next render.
   function removeRowThenRender(id) {
     const row = els.listingsContainer.querySelector(
-      `.listing[data-id="${CSS.escape(String(id))}"]`
+      `.listing[data-id="${CSS.escape(String(id))}"]`,
     );
     if (!row) {
-      state.contacts = state.contacts.filter((c) => String(c.id) !== String(id));
+      state.contacts = state.contacts.filter(
+        (c) => String(c.id) !== String(id),
+      );
       renderAll({ skipEntrance: true });
       return;
     }
     row.classList.add("is-removing");
     window.setTimeout(() => {
-      state.contacts = state.contacts.filter((c) => String(c.id) !== String(id));
+      state.contacts = state.contacts.filter(
+        (c) => String(c.id) !== String(id),
+      );
       renderAll({ skipEntrance: true });
     }, ROW_REMOVE_MS);
   }
@@ -452,7 +489,11 @@
     if (!value) return "recently";
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return "recently";
-    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    return d.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   }
 
   function formatPhone(raw) {
@@ -464,13 +505,17 @@
   }
 
   function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    }[ch]));
+    return String(value ?? "").replace(
+      /[&<>"']/g,
+      (ch) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[ch],
+    );
   }
 
   function debounce(fn, delay) {

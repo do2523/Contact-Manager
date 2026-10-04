@@ -1,68 +1,133 @@
 <?php
 
+
 header("Content-Type: application/json");
+session_start();
 
-require_once "../db.php";
 
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    returnWithError("Method not allowed", 405);
+}
+
+if (!isset($_SESSION["user_id"])) {
+        returnWithError("Not logged in", 401);
+    }
+
+$UserID = $_SESSION["user_id"];
+// Connect to database
+$conn = require_once "../config/database.php";
+
+if ($conn->connect_error)
+{
+    returnWithError($conn->connect_error, 500);
+}
+
+// Read JSON body
 $data = json_decode(file_get_contents("php://input"), true);
 
+// Check for valid JSON
+if ($data === null)
+{
+    returnWithError("Invalid POST request", 400);
+}
+
+// Get fields from request
 $ContactID = $data["ContactID"] ?? null;
-$UserID = $data["UserID"] ?? null;
 $FirstName = $data["FirstName"] ?? null;
 $LastName = $data["LastName"] ?? null;
 $Phone = $data["Phone"] ?? null;
 $Email = $data["Email"] ?? null;
 
-// Validate request
-if (/* missing ContactID, UserID, etc. */) {
-    // Return 400 error
-    exit;
+// Validate required fields
+if (empty($ContactID) || empty($FirstName) || empty($LastName))
+{
+    returnWithError(
+        "ContactID, FirstName, and LastName are required",
+        400
+    );
 }
-// makes sure one user can never edit another user's contact  just by guessing an id
+
+if (empty($Email) && empty($Phone)) {
+    returnWithError("Email or Phone is required", 400);
+}
+
 // Prepare UPDATE query
+// Make sure the contact belongs to the specified user
 $stmt = $conn->prepare(
     "UPDATE contacts
-    SET FirstName = ?, LastName = ?, Email = ?, Phone = ?
-    WHERE id = ?
-    AND UserID = ?
+     SET FirstName = ?,
+         LastName = ?,
+         Email = ?,
+         Phone = ?
+     WHERE ContactID = ?
+     AND UserID = ?"
 );
 
-// Bind parameters
-$stmt->bind_param("ssssii", $FirstName, $LastName, $Email, $Phone, $id, $UserID);
-
-// Execute query
-$stmt->execute();
-
-if($stmt->affected_rows === 0){
-    returnWithError("No matching contact found to update");
+if (!$stmt)
+{
+    returnWithError("Prepare failed: " . $conn->error, 500);
 }
 
+// Bind parameters
+$stmt->bind_param(
+    "ssssii",
+    $FirstName,
+    $LastName,
+    $Email,
+    $Phone,
+    $ContactID,
+    $UserID
+);
+
+// Execute query
+if (!$stmt->execute())
+{
+    returnWithError("Update failed: " . $stmt->error, 500);
+}
+
+// Check if contact was found
+// if ($stmt->affected_rows === 0)
+// {
+//     returnWithError("No matching contact found to update", 404);
+// }
+
+// Close statement and connection
 $stmt->close();
 $conn->close();
 
+// Return successful response
 returnWithSuccess([
-    "id"        => (int)$id,
-    "FirstName  => $FirstName,
-    "LastName"  => $LastName,
-    "Email"     => $Email,
-    "Phone"     => $Phone
-]); 
+    "ContactID" => (int)$ContactID,
+    "UserID" => (int)$UserID,
+    "FirstName" => $FirstName,
+    "LastName" => $LastName,
+    "Email" => $Email,
+    "Phone" => $Phone
+]);
 
 
-
-// helper function
-
+// Helper function
 function returnWithError($err, $statusCode = 400)
 {
     http_response_code($statusCode);
-    echo json_encode(["error => $err"]);
+
+    echo json_encode([
+        "contacts" => [],
+        "error" => $err
+    ]);
+
     exit;
 }
 
-function returnWithSuccess($data)
+function returnWithSuccess($contact)
 {
-    $data[error] = "";
-    echo json_encode($data);
+    echo json_encode([
+        "contacts" => [$contact],
+        "error" => ""
+    ]);
+
     exit;
 }
+
 ?>
+
