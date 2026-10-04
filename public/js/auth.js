@@ -4,12 +4,12 @@
  *
  * Assumed API contract (backend not built yet — confirm with the API dev
  * before this ships; assumes PHP session-cookie auth, not tokens):
- *   POST /api/auth/register.php  body { firstName, lastName, email, password } -> { user: User }
- *   POST /api/auth/login.php     body { email, password }                     -> { user: User }
+ *   POST /api/auth/register.php  body { username, password, password_confirmation } -> { success: true }
+ *   POST /api/auth/login.php     body { username, password }                  -> { id, username, error }
  *   POST /api/auth/logout.php    (no body)                                    -> { success: true }
  *   GET  /api/auth/session.php   (no body)                                    -> { user: User | null }
  *
- * User shape: { id, firstName, lastName, email }
+ * User shape: { id, username }
  * All requests are expected to send the PHP session cookie (credentials: "include").
  */
 
@@ -42,14 +42,13 @@
     els.loginForm = document.getElementById("loginForm");
     els.registerForm = document.getElementById("registerForm");
 
-    els.loginEmail = document.getElementById("loginEmail");
+    els.loginUsername = document.getElementById("loginUsername");
     els.loginPassword = document.getElementById("loginPassword");
     els.loginSubmitBtn = document.getElementById("loginSubmitBtn");
 
-    els.registerFirstName = document.getElementById("registerFirstName");
-    els.registerLastName = document.getElementById("registerLastName");
-    els.registerEmail = document.getElementById("registerEmail");
+    els.registerUsername = document.getElementById("registerUsername");
     els.registerPassword = document.getElementById("registerPassword");
+    els.passwordRules = document.getElementById("passwordRules");
     els.registerConfirm = document.getElementById("registerConfirm");
     els.registerSubmitBtn = document.getElementById("registerSubmitBtn");
   }
@@ -85,8 +84,8 @@
         window.location.href = "index.html";
         return;
       }
-      if (els.welcomeMsg && user.firstName) {
-        els.welcomeMsg.textContent = `Hi, ${user.firstName}`;
+      if (els.welcomeMsg && user.username) {
+        els.welcomeMsg.textContent = `Hi, ${user.username}`;
       }
     } catch (err) {
       // Fail open during development so a missing session endpoint doesn't
@@ -101,6 +100,11 @@
     els.registerTabBtn.addEventListener("click", () => switchTab("register"));
     els.loginForm.addEventListener("submit", onLoginSubmit);
     els.registerForm.addEventListener("submit", onRegisterSubmit);
+    els.registerPassword.addEventListener("input", () => {
+      clearFieldErrors(["registerPassword"]);
+      renderPasswordRules();
+    });
+    renderPasswordRules();
   }
 
   function switchTab(tab) {
@@ -113,21 +117,21 @@
     els.registerForm.hidden = showLogin;
     clearAllFieldErrors();
     hideBanner();
-    (showLogin ? els.loginEmail : els.registerFirstName).focus();
+    (showLogin ? els.loginUsername : els.registerUsername).focus();
   }
 
   async function onLoginSubmit(e) {
     e.preventDefault();
 
     const payload = {
-      email: els.loginEmail.value.trim(),
+      username: els.loginUsername.value.trim(),
       password: els.loginPassword.value,
     };
 
-    clearFieldErrors(["loginEmail", "loginPassword"]);
+    clearFieldErrors(["loginUsername", "loginPassword"]);
     let valid = true;
-    if (!isValidEmail(payload.email)) {
-      setFieldError("loginEmail", "Enter a valid email address.");
+    if (!payload.username) {
+      setFieldError("loginUsername", "Enter your username.");
       valid = false;
     }
     if (!payload.password) {
@@ -141,7 +145,7 @@
       await AuthApi.login(payload);
       window.location.href = "contacts.html";
     } catch (err) {
-      showBanner(err.message || "Could not log in. Check your email and password.", "error");
+      showBanner(err.message || "Could not log in. Check your username and password.", "error");
     } finally {
       els.loginSubmitBtn.disabled = false;
     }
@@ -150,33 +154,28 @@
   async function onRegisterSubmit(e) {
     e.preventDefault();
 
-    const payload = {
-      firstName: els.registerFirstName.value.trim(),
-      lastName: els.registerLastName.value.trim(),
-      email: els.registerEmail.value.trim(),
-      password: els.registerPassword.value,
-    };
-    const confirmPassword = els.registerConfirm.value;
+    const username = els.registerUsername.value.trim();
+    const password = els.registerPassword.value;
+    const confirmation = els.registerConfirm.value;
 
-    clearFieldErrors(["registerFirstName", "registerLastName", "registerEmail", "registerPassword", "registerConfirm"]);
+    clearFieldErrors(["registerUsername", "registerPassword", "registerConfirm"]);
     let valid = true;
-    if (!payload.firstName) {
-      setFieldError("registerFirstName", "First name is required.");
+    if (!username) {
+      setFieldError("registerUsername", "Choose a username.");
       valid = false;
     }
-    if (!payload.lastName) {
-      setFieldError("registerLastName", "Last name is required.");
+    const failed = passwordRules(password).filter((rule) => !rule.met);
+    if (failed.length) {
+      setFieldError(
+        "registerPassword",
+        "Password still needs: " + failed.map((rule) => rule.label).join(", ") + "."
+      );
       valid = false;
     }
-    if (!isValidEmail(payload.email)) {
-      setFieldError("registerEmail", "Enter a valid email address.");
+    if (!confirmation) {
+      setFieldError("registerConfirm", "Retype your password.");
       valid = false;
-    }
-    if (!payload.password || payload.password.length < 8) {
-      setFieldError("registerPassword", "Use at least 8 characters.");
-      valid = false;
-    }
-    if (confirmPassword !== payload.password) {
+    } else if (confirmation !== password) {
       setFieldError("registerConfirm", "Passwords do not match.");
       valid = false;
     }
@@ -184,14 +183,17 @@
 
     els.registerSubmitBtn.disabled = true;
     try {
-      await AuthApi.register(payload);
+      await AuthApi.register({
+        username,
+        password,
+        password_confirmation: confirmation,
+      });
       try {
-        await AuthApi.login({ email: payload.email, password: payload.password });
+        await AuthApi.login({ username, password });
         window.location.href = "contacts.html";
       } catch (loginErr) {
         showBanner("Account created — please log in.", "success");
         switchTab("login");
-        els.loginEmail.value = payload.email;
       }
     } catch (err) {
       showBanner(err.message || "Could not create your account.", "error");
@@ -200,11 +202,28 @@
     }
   }
 
-  // ---------------- Helpers ----------------
+  // ---------------- Password rules ----------------
 
-  function isValidEmail(value) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  // A "special" character is a symbol: not a letter, digit, or whitespace.
+  function passwordRules(password) {
+    return [
+      { key: "length", label: "at least 8 characters", met: password.length >= 8 },
+      { key: "upper", label: "an uppercase letter", met: /[A-Z]/.test(password) },
+      { key: "lower", label: "a lowercase letter", met: /[a-z]/.test(password) },
+      { key: "number", label: "a number", met: /[0-9]/.test(password) },
+      { key: "special", label: "a special character", met: /[^A-Za-z0-9\s]/.test(password) },
+    ];
   }
+
+  function renderPasswordRules() {
+    const results = passwordRules(els.registerPassword.value);
+    results.forEach((rule) => {
+      const item = els.passwordRules.querySelector(`[data-rule="${rule.key}"]`);
+      if (item) item.classList.toggle("is-met", rule.met);
+    });
+  }
+
+  // ---------------- Helpers ----------------
 
   function setFieldError(fieldId, message) {
     const field = document.getElementById(`field-${fieldId}`);

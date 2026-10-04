@@ -54,9 +54,18 @@
         </div>
 
         <form id="loginForm" novalidate>
-          <div class="field" id="field-loginEmail">
-            <label for="loginEmail">Email</label>
-            <input type="email" id="loginEmail" name="email" required autocomplete="email" />
+          <div class="field" id="field-loginUsername">
+            <label for="loginUsername">Username</label>
+            <input
+              type="text"
+              id="loginUsername"
+              name="username"
+              required
+              maxlength="50"
+              autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
+            />
             <span class="field__error"></span>
           </div>
 
@@ -70,21 +79,18 @@
         </form>
 
         <form id="registerForm" novalidate hidden>
-          <div class="field" id="field-registerFirstName">
-            <label for="registerFirstName">First Name</label>
-            <input type="text" id="registerFirstName" name="firstName" required autocomplete="given-name" />
-            <span class="field__error"></span>
-          </div>
-
-          <div class="field" id="field-registerLastName">
-            <label for="registerLastName">Last Name</label>
-            <input type="text" id="registerLastName" name="lastName" required autocomplete="family-name" />
-            <span class="field__error"></span>
-          </div>
-
-          <div class="field" id="field-registerEmail">
-            <label for="registerEmail">Email</label>
-            <input type="email" id="registerEmail" name="email" required autocomplete="email" />
+          <div class="field" id="field-registerUsername">
+            <label for="registerUsername">Username</label>
+            <input
+              type="text"
+              id="registerUsername"
+              name="username"
+              required
+              maxlength="50"
+              autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
+            />
             <span class="field__error"></span>
           </div>
 
@@ -96,13 +102,20 @@
               name="password"
               required
               autocomplete="new-password"
-              minlength="8"
+              aria-describedby="passwordRules"
             />
             <span class="field__error"></span>
+            <ul class="password-rules" id="passwordRules" aria-label="Password requirements">
+              <li data-rule="length">At least 8 characters</li>
+              <li data-rule="upper">One uppercase letter</li>
+              <li data-rule="lower">One lowercase letter</li>
+              <li data-rule="number">One number</li>
+              <li data-rule="special">One special character (for example ! @ # $ %)</li>
+            </ul>
           </div>
 
           <div class="field" id="field-registerConfirm">
-            <label for="registerConfirm">Confirm Password</label>
+            <label for="registerConfirm">Retype Password</label>
             <input
               type="password"
               id="registerConfirm"

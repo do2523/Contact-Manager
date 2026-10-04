@@ -740,6 +740,71 @@ body {
   min-height: 1em;
 }
 
+/* Live password checklist: each rule fills in as it is satisfied. */
+.password-rules {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.password-rules li {
+  position: relative;
+  padding-left: 24px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  transition: color 150ms ease;
+}
+
+.password-rules li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--ink-soft);
+  border-radius: 50%;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.password-rules li::after {
+  content: "";
+  position: absolute;
+  left: 4.5px;
+  top: 3.5px;
+  width: 4px;
+  height: 7px;
+  border: solid var(--ink-on-accent);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 150ms var(--ease-out);
+}
+
+.password-rules li.is-met {
+  color: var(--ink);
+}
+
+.password-rules li.is-met::before {
+  background: var(--purple-solid);
+  border-color: var(--purple-solid);
+}
+
+.password-rules li.is-met::after {
+  transform: rotate(45deg) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .password-rules li,
+  .password-rules li::before,
+  .password-rules li::after {
+    transition: none;
+  }
+}
+
 .ad-card__footer {
   padding: 14px 22px 22px;
   display: flex;
