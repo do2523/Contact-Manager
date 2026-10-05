@@ -1,5 +1,7 @@
 # Contact Manager
 
+Website: http://purifiedmint.xyz/
+
 Contact Manager is a web application designed for COP4331 that allows users to create an account, log in, and manage their personal contacts.
 
 Once logged in, users can view all of their saved contacts and contact information, search through contacts, add new contacts, edit existing contacts, and delete contacts they no longer need.
