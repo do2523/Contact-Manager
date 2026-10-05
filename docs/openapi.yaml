@@ -5,12 +5,13 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://167.99.13.14/Contact-Manager
+  - url: https://purifiedmint.xyz
 
 paths:
   /api/auth/register.php:
     post:
       summary: Register a new user
+      security: []
       requestBody:
         required: true
         content:
@@ -95,6 +96,8 @@ paths:
       responses:
         "200":
           description: Logout successful
+        "405":
+          description: Method not allowed
 
   /api/auth/session.php:
     get:
@@ -187,7 +190,7 @@ paths:
           description: Database error
 
   /api/contacts/update.php:
-    put:
+    post:
       summary: Update a contact
       security:
         - sessionAuth: []
@@ -225,13 +228,17 @@ paths:
           description: Invalid contact data
         "401":
           description: Not logged in
+        "404":
+          description: Contact not found
         "405":
           description: Method not allowed
+        "409":
+          description: Email or phone already exists
         "500":
           description: Database error
 
   /api/contacts/delete.php:
-    delete:
+    post:
       summary: Delete a contact
       security:
         - sessionAuth: []
